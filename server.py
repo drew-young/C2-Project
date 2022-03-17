@@ -8,8 +8,12 @@ CURRENT_CONNECTIONS = []
 CURRENT_ADDRESSES = []
 
 #If the user starts the server and wants to specify the ip to host on
-if len(sys.argv) > 1:
+if len(sys.argv) == 2:
     SERVER_ADDR = sys.argv[1]
+elif len(sys.argv) == 3:
+    SERVER_ADDR = sys.argv[1]
+    SERVER_PORT = sys.argv[2]
+
 
 server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_sock.bind((SERVER_ADDR, SERVER_PORT))
