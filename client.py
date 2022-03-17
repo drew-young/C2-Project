@@ -35,6 +35,9 @@ while True:
         else: #if it worked, don't send anything
             output = ""
             continue
+    elif splitted_command[0] == "echo":
+        output = subprocess.getoutput(command)
+        output = "Echoed!"
     else: #if the user doesn't want to change directories, run the command and capture the output
         output = subprocess.getoutput(command)
 
