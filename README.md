@@ -11,4 +11,3 @@ The goal of this project is to learn more about Red Teaming tools and how to dev
 ## About the Author
 
 Drew Young - First year student majoring in CSEC
-

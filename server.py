@@ -1,11 +1,15 @@
 import socket, threading, time
+import sys
 
 SERVER_ADDR = "127.0.0.1"
 SERVER_PORT = 8080
 BUFFER_SIZE = 1024 * 128 #128KB max size
 CURRENT_CONNECTIONS = []
 CURRENT_ADDRESSES = []
-THREADS = [2,1]
+
+#If the user starts the server and wants to specify the ip to host on
+if len(sys.argv) > 1:
+    SERVER_ADDR = sys.argv[1]
 
 server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_sock.bind((SERVER_ADDR, SERVER_PORT))

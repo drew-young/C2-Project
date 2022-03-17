@@ -1,14 +1,21 @@
 import socket, subprocess, os, sys
 
-def close():
-    s.close()
-    print("Closing!")
-    exit(0)
 
 SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 8080
 BUFFER_SIZE = 1024 * 128 #128KB max size
 
+
+if len(sys.argv) == 2:
+    SERVER_HOST = sys.argv[1]
+elif len(sys.argv) == 3:
+    SERVER_HOST = sys.argv[1]
+    try:
+        SERVER_PORT = int(sys.argv[2])
+    except:
+        print("Can not cast port to int!")
+
+    
 s = socket.socket() #Establish socket connection
 s.connect((SERVER_HOST,SERVER_PORT)) #Connect to server
 
