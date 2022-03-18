@@ -60,6 +60,9 @@ def handleClient(client_sock,addr):
         except socket.timeout as e:
             print("Process timed out. \n" + str(e))
             print(f"{addr[0]}>",end='')
+        except BrokenPipeError as e:
+            print(e)
+            continue
         except Exception as e:
             print("Error sending command! \n" + str(e))
     

