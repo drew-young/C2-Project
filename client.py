@@ -40,9 +40,13 @@ elif len(sys.argv) == 3:
         SERVER_PORT = int(sys.argv[2])
     except:
         print("Can not cast port to int!")
-    
-s = socket.socket() #Establish socket connection
-s.connect((SERVER_HOST,SERVER_PORT)) #Connect to server
+
+#If the server is down, end the program.
+try:
+    s = socket.socket() #Establish socket connection
+    s.connect((SERVER_HOST,SERVER_PORT)) #Connect to server
+except:
+    exit()
 
 while True:
     command = s.recv(BUFFER_SIZE).decode() #Recieve the command from the server and decode it into a string
