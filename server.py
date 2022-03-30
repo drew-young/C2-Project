@@ -190,7 +190,7 @@ def download_file(cmd,conn):
                     f.write(data) #Write to the file
                     conn.send("ACK".encode()) #Tell the client we got it
                     data = conn.recv(1024) #Wait for more data
-            print(path + " saved to: " + os.getcwd()) #Print that the file was downloaded and saved
+            print(path[len(path)-1] + " saved to: " + os.getcwd()) #Print that the file was downloaded and saved
     except KeyboardInterrupt as e:
         print("File Download Stopped.")
 
