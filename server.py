@@ -176,11 +176,11 @@ def download_file(cmd,conn):
     try:
         conn.send(("DOWNLOAD_FILE_FROM_S3RVER").encode()) #Tell client we want to download
         path = cmd.replace("dl ","") #Get the path of the requested download
-        if conn.recv(1024).decode() == "READY": #Wait for client to be ready
+        if conn.recv(BUFFER_SIZE).decode() == "READY": #Wait for client to be ready
             conn.send(path.encode()) #Send the path to client
             path = path.split("/") #Split the path by slash
             with open(path[len(path)-1],"ab") as f: #Open a file with just the filename
-                data = conn.recv(1024) #Recieve data from client
+                data = conn.recv(BUFFER_SIZE) #Recieve data from client
                 while data: #While data is not None
                     if data.decode() == "DOWNLOADING_FILE_FROM_S3RVER_COMPLETE": #If it is done, break
                         break
@@ -189,7 +189,7 @@ def download_file(cmd,conn):
                         break
                     f.write(data) #Write to the file
                     conn.send("ACK".encode()) #Tell the client we got it
-                    data = conn.recv(1024) #Wait for more data
+                    data = conn.recv(BUFFER_SIZE) #Wait for more data
             print(path[len(path)-1] + " saved to: " + os.getcwd()) #Print that the file was downloaded and saved
     except KeyboardInterrupt as e:
         print("File Download Stopped.")
@@ -198,20 +198,20 @@ def upload_file(cmd,conn):
     try:
         path = cmd.replace("up ","")
         conn.send(("UPLOADING_FILE_FROM_S3RVER").encode())
-        if conn.recv(1024).decode() == "READY":
+        if conn.recv(BUFFER_SIZE).decode() == "READY":
             conn.send(path.encode())
             with open(path,"rb") as f:
-                data = f.read(1024)
+                data = f.read(BUFFER_SIZE)
                 while data:
                     conn.send(data)
-                    if(conn.recv(1024).decode()) == "ACK":
-                        data = f.read(1024)
+                    if(conn.recv(BUFFER_SIZE).decode()) == "ACK":
+                        data = f.read(BUFFER_SIZE)
                     else:
                         print("An error has occured!")
                         break
 
                 conn.send("UPLOADING_FILE_FROM_S3RVER_COMPLETE".encode())
-                if conn.recv(1024).decode() == "DONE":
+                if conn.recv(BUFFER_SIZE).decode() == "DONE":
                     print("File uploaded successfully!")
 
     except FileNotFoundError or FileExistsError as e:

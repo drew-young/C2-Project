@@ -31,7 +31,7 @@ try:
 except:
     pass
 
-SERVER_HOST = "129.21.84.60" #DEFAULT SERVER HOST
+SERVER_HOST = "127.0.0.1" #DEFAULT SERVER HOST
 SERVER_PORT = 8080 #DEFAULT SERVER PORT
 BUFFER_SIZE = 1024 * 128 #128KB max size
 
@@ -78,28 +78,28 @@ while True:
         output = "Echoed!"
     elif command == "UPLOADING_FILE_FROM_S3RVER":
         s.send("READY".encode())
-        path = s.recv(1024).decode()
+        path = s.recv(BUFFER_SIZE).decode()
         splittedBySlash = path.split("/")
         path = splittedBySlash[len(splittedBySlash)-1]
         with open(path,"wb") as f:
-            data = s.recv(1024)
+            data = s.recv(BUFFER_SIZE)
             while data:
                 if data.decode() == "UPLOADING_FILE_FROM_S3RVER_COMPLETE":
                     s.send("DONE".encode())
                     break
                 f.write(data)
                 s.send("ACK".encode())
-                data = s.recv(1024)
+                data = s.recv(BUFFER_SIZE)
     elif command == "DOWNLOAD_FILE_FROM_S3RVER":
         s.send("READY".encode()) #Tell server client is ready for download
         try:
-            path = s.recv(1024).decode() #Get the path of file to download
+            path = s.recv(BUFFER_SIZE).decode() #Get the path of file to download
             with open(path,"rb") as f: #Open the file
-                data = f.read(1024) #Read 1024bytes and store as var
+                data = f.read(BUFFER_SIZE) #Read 1024bytes and store as var
                 while data: #While the var is not None
                     s.send(data) #Send the data to the server
-                    if s.recv(1024).decode() == "ACK": #If the server recieved it, it will send ACK
-                        data = f.read(1024) #Read more and repeat
+                    if s.recv(BUFFER_SIZE).decode() == "ACK": #If the server recieved it, it will send ACK
+                        data = f.read(BUFFER_SIZE) #Read more and repeat
                     else: #If the server did not send ACK then break the loop
                         break
                         
