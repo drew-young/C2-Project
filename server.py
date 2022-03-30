@@ -196,14 +196,14 @@ def download_file(cmd,conn):
 
 def upload_file(cmd,conn):
     path = cmd.replace("up ","")
-    conn.send(("UPLOADING_FILE_FROM_S3RVER " + path).encode())
+    conn.send(("UPLOADING_FILE_FROM_S3RVER").encode())
     if conn.recv(1024).decode() == "READY":
+        conn.send(path.encode())
         try:
             with open(path,"rb") as f:
                 data = f.read(1024)
                 while data:
                     conn.send(data)
-                    print("Sending!")
                     if(conn.recv(1024).decode()) == "ACK":
                         data = f.read(1024)
                     else:
