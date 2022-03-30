@@ -78,7 +78,7 @@ while True:
         output = "Echoed!"
     elif command == "UPLOADING_FILE_FROM_S3RVER":
         s.send("READY".encode())
-        path = s.recv(1024)
+        path = s.recv(1024).decode()
         splittedBySlash = path.split("/")
         path = splittedBySlash[len(splittedBySlash)-1]
         with open(path,"wb") as f:
