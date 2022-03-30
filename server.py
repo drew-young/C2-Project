@@ -1,4 +1,3 @@
-from logging import shutdown
 import os
 import socket, threading, time
 import sys
@@ -175,23 +174,23 @@ def client_console(cmd):
 
 def download_file(cmd,conn):
     try:
-        conn.send(("DOWNLOAD_FILE_FROM_S3RVER").encode())
-        path = cmd.replace("dl ","")
-        if conn.recv(1024).decode() == "READY":
-            conn.send(path.encode())
-            path = path.split("/")
-            with open(path[len(path)-1],"ab") as f:
-                data = conn.recv(1024)
-                while data:
-                    if data.decode() == "DOWNLOADING_FILE_FROM_S3RVER_COMPLETE":
+        conn.send(("DOWNLOAD_FILE_FROM_S3RVER").encode()) #Tell client we want to download
+        path = cmd.replace("dl ","") #Get the path of the requested download
+        if conn.recv(1024).decode() == "READY": #Wait for client to be ready
+            conn.send(path.encode()) #Send the path to client
+            path = path.split("/") #Split the path by slash
+            with open(path[len(path)-1],"ab") as f: #Open a file with just the filename
+                data = conn.recv(1024) #Recieve data from client
+                while data: #While data is not None
+                    if data.decode() == "DOWNLOADING_FILE_FROM_S3RVER_COMPLETE": #If it is done, break
                         break
-                    elif data.decode() == "DOWNLOAD_ERROR":
+                    elif data.decode() == "DOWNLOAD_ERROR": #If there's an error, tell us and break
                         print("File was not found on target machine.")
                         break
-                    f.write(data)
-                    conn.send("ACK".encode())
-                    data = conn.recv(1024)
-            print(path + " saved to: " + os.getcwd())
+                    f.write(data) #Write to the file
+                    conn.send("ACK".encode()) #Tell the client we got it
+                    data = conn.recv(1024) #Wait for more data
+            print(path + " saved to: " + os.getcwd()) #Print that the file was downloaded and saved
     except KeyboardInterrupt as e:
         print("File Download Stopped.")
 
@@ -211,12 +210,12 @@ def upload_file(cmd,conn):
                         print("An error has occured!")
                         break
 
-            conn.send("DOWNLOADING_FILE_FROM_S3RVER_COMPLETE".encode())
+            conn.send("UPLOADING_FILE_FROM_S3RVER_COMPLETE".encode())
             if conn.recv(1024).decode() == "DONE":
                 print("File uploaded successfully!")
 
         except FileNotFoundError or FileExistsError as e:
-            conn.send("DOWNLOADING_FILE_FROM_S3RVER_COMPLETE".encode())
+            conn.send("UPLOADING_FILE_FROM_S3RVER_COMPLETE".encode())
             print("File not found! \n"+ str(e))
 
 

