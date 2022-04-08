@@ -1,8 +1,8 @@
-# C2-Project
+# CONSTANT CONTROL
 
 ## About the Project
 
-The goal of this project is to learn more about Red Teaming tools and how to develop them.
+The goal of this C2 project is to learn more about Red Teaming tools and how to develop them.
 
 ## How to Use
 The server.py file can be run in three ways:
