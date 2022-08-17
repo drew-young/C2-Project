@@ -5,13 +5,38 @@ import sys
 import signal
 import pty
 
-#Take the clients message of if the reverse shell was started or not
+#Class to store IP, port, connection, and tags for the 
+class Connection:
+    team = 'N/A'
+    service = 'N/A'
+    nickName = 'N/A'
 
+    def __init__(self, IP, port, connection):
+        tags = list()
+        self.IP = IP
+        self.port = port
+        self.connection = connection
+    
+    def addTags(self, team, service):
+        self.team = team
+        self.service = service
+
+    def resetTags(self, team, service):
+        self.team = 'N/A'
+        self.service = 'N/A'
+    
+    def setNickName(self, nickname):
+        self.nickName = nickname
+    
+
+
+#Take the clients message of if the reverse shell was started or not
 
 SERVER_ADDR = "127.0.0.1"
 SERVER_PORT = 8080
 BUFFER_SIZE = 1024 * 128 #128KB max size
 CURRENT_CONNECTIONS = []
+CURRENT_CONNECTIONS_CLASS = []
 CURRENT_ADDRESSES = []
 
 #If the user starts the server and wants to specify the ip to host on
@@ -45,9 +70,10 @@ def startServer():
     try:
         while SERVER_UP:
             client_sock, addr = server_sock.accept()
-            print()
-            print()
-            print(f"\n[SERVER] New Connection Received From: {addr[0]}:{addr[1]}")
+            # print()
+            # print()
+            # print(f"\n[SERVER] New Connection Received From: {addr[0]}:{addr[1]}")
+            CURRENT_CONNECTIONS_CLASS.append(Connection(addr[0],addr[1],client_sock))
             CURRENT_CONNECTIONS.append(client_sock)
             CURRENT_ADDRESSES.append(addr)
             # print(f"[SERVER] Active Connections: {threading.activeCount() - 6}")
