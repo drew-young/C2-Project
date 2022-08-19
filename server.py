@@ -32,9 +32,9 @@ class Team():
         self.clients.append(client) #Append the client to the clients list
 
     def listClients(self):
-        print("Team " + self.identity + ":")
+        print("> Team " + self.identity + ":")
         for client in self.clients:
-            print("\t> " + client.getNick())
+            print("    >> " + client.getNick())
 
 class Service():
     #TODO Each service has stored commands to break it
@@ -46,14 +46,15 @@ class Connection:
     nickName = 'N/A'
 
     def __init__(self, addr, socket):
-        tags = list()
+        UNASSIGNED_CONNECTIONS.append(self)
+        self.tags = list()
         self.IP = addr[0]
         self.port = addr[1]
         self.socket = socket
         self.addr = addr
         self.nickName = str(addr)
         self.team = 'N/A'
-        self,service = 'N/A'
+        self.service = 'N/A'
     
     def addTags(self, team, service):
         self.team = team
@@ -83,6 +84,7 @@ CURRENT_CONNECTIONS = []
 CURRENT_CONNECTIONS_CLASS = []
 CURRENT_ADDRESSES = []
 TEAMS = []
+UNASSIGNED_CONNECTIONS = []
 
 #If the user starts the server and wants to specify the ip to host on
 if len(sys.argv) == 2:
@@ -262,14 +264,38 @@ def addTeam(identity):
 def assignTeam(client, team):
     team = TEAMS.index(team)
     TEAMS[team].assign(client)
+    UNASSIGNED_CONNECTIONS.remove(client)
 
 def listTeams():
     print("Team's Connections:")
     for team in TEAMS:
         team.listClients()
+    if(UNASSIGNED_CONNECTIONS):
+        print("\nUnassigned Clients: ")
+        for client in UNASSIGNED_CONNECTIONS:
+            print(client.getNick())
 
 def assignLoop():
-    pass
+    while(UNASSIGNED_CONNECTIONS):
+        print("Current Unassigned Clients: ")
+        for i in range(len(UNASSIGNED_CONNECTIONS)):
+            print(f"\t{i} - {UNASSIGNED_CONNECTIONS[i].getNick()}")
+        target = input("Enter the index of which user you would like to assign: ")
+        if target == "exit":
+            print("Exiting.")
+            break
+        else:
+            client = UNASSIGNED_CONNECTIONS[int(target)]
+        for i in range(len(TEAMS)):
+            print(f"\t{i} - {TEAMS[i].identity}")
+        target = input(f"Enter the index of which team you would like {client.getNick()} to: ")
+        if target == "exit":
+            print("Exiting.")
+            break
+        else:
+            assignTeam(client, TEAMS[int(target)])
+    else:
+        print("There are no unassigned clients!")
     #If there are unassigned clients
     #List unassigned clients
     #Ask user to input which client to assign
@@ -278,6 +304,7 @@ def assignLoop():
     #Ask user which team to assign client to
     #If the user says exit, then quit
     #If there are more unassigned clients, repeat
+    #TODO add ability to reassign
 
 #Console to send commands to a client when user selects client
 def client_console(cmd):
@@ -297,7 +324,7 @@ def client_console(cmd):
                 else:
                     print("Active Shell On: " + str(CURRENT_ADDRESSES[target][0]) + ":" + str(CURRENT_ADDRESSES[target][1]))
                     print("\n" + str(CURRENT_ADDRESSES[target][0]) + ">",end = '')
-                    handleClient(client,addr)
+                    handleClient(CURRENT_CONNECTIONS_CLASS[target])
             elif "dl" in newCMD: #Download file
                 download_file(newCMD,CURRENT_CONNECTIONS[target])
             elif "up" in newCMD: #Upload file
