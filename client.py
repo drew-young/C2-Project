@@ -226,4 +226,8 @@ def clientLoop():
         except Exception as e:
             s.send("Error on client side.".encode())
 
-clientLoop()
+#If anything breaks, just reset the connection
+try:
+    clientLoop() 
+except:
+    clinetLoop()
