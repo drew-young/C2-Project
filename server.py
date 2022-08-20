@@ -311,6 +311,7 @@ def client_console(cmd):
         target = cmd.replace("select ", "")
         target = cmd.replace("sel ", "")
         target = int(target)
+        connection = CURRENT_CONNECTIONS_CLASS
         print("Connected to: " + str(CURRENT_ADDRESSES[target][0]) + ":" + str(CURRENT_ADDRESSES[target][1]))
         while True:
             print("Console: " + str(CURRENT_ADDRESSES[target][0])+">",end="")
@@ -340,6 +341,8 @@ def client_console(cmd):
             elif "setnick" in newCMD.lower():
                 newCMD.replace("setnick","")
                 CURRENT_CONNECTIONS_CLASS[target].setNickName(newCMD)
+            elif "reset" in newCMD.lower():
+                connection.getSocket().send("reset_connection".encode())
             elif "help" in newCMD: #Help menu
                 print("\nHelp Menu:\
                     \n\tUse 'exit' to return to main menu. \
@@ -472,10 +475,10 @@ def startTTY(IP):
         except KeyboardInterrupt:
             print("Exiting TTY!")
 
-#Disconnect all clients and end sockets
+#Disconnect all clients and end sockets - UPDATED TO RESET CONNECTION TO KEEP ALIVE
 def shutdown_clients():
     for conn in CURRENT_CONNECTIONS:
-        conn.send("SERVER_SHUTDOWN".encode())
+        conn.send("reset_connection".encode())
 
 if __name__ == "__main__":
     print("[SERVER] Server is starting...") 

