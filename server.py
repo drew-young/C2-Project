@@ -14,9 +14,10 @@ from cmd import Cmd
 #TODO Assign team function: List all unassigned clients. Select a client at an index, then list all teams that the user can add the client to.
 #TODO When a client connects, add them to the unassigned group
 #TODO replace all client connections with the client class
-#TODO Develop new shell
+#TODO Develop new shell with cmd module
 #TODO Encrypt traffic
 #TODO Store commands in config file
+#TODO Exit does not end connection, but resets the client to keep trying to connect.
 
 
 
@@ -30,6 +31,7 @@ class Team():
     
     def assign(self, client):
         self.clients.append(client) #Append the client to the clients list
+        client.setTeam(self)
 
     def listClients(self):
         print("> Team " + self.identity + ":")
@@ -43,8 +45,6 @@ class Service():
 
 #Class to store IP, port, connection, and tags for the 
 class Connection:
-    nickName = 'N/A'
-
     def __init__(self, addr, socket):
         UNASSIGNED_CONNECTIONS.append(self)
         self.tags = list()
@@ -55,14 +55,10 @@ class Connection:
         self.nickName = str(addr)
         self.team = 'N/A'
         self.service = 'N/A'
+        self.tags = []
     
-    def addTags(self, team, service):
-        self.team = team
-        self.service = service
-
-    def resetTags(self, team, service):
-        self.team = 'N/A'
-        self.service = 'N/A'
+    def addTags(self, tag):
+        self.tags.append(tag)
     
     def setNickName(self, nickname):
         self.nickName = nickname
@@ -75,6 +71,9 @@ class Connection:
     
     def getNick(self):
         return self.nickName
+
+    def setTeam(self, team):
+        self.team = team
     
 #Take the clients message of if the reverse shell was started or not
 SERVER_ADDR = "127.0.0.1"
