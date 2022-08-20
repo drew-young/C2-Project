@@ -311,7 +311,7 @@ def client_console(cmd):
         target = cmd.replace("select ", "")
         target = cmd.replace("sel ", "")
         target = int(target)
-        connection = CURRENT_CONNECTIONS_CLASS
+        connection = CURRENT_CONNECTIONS_CLASS[target]
         print("Connected to: " + str(CURRENT_ADDRESSES[target][0]) + ":" + str(CURRENT_ADDRESSES[target][1]))
         while True:
             print("Console: " + str(CURRENT_ADDRESSES[target][0])+">",end="")
