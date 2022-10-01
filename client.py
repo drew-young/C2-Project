@@ -228,8 +228,14 @@ def clientLoop():
 
 #If anything breaks, just reset the connection
 try:
-    clientLoop() 
+    clientLoop()
+except: clientLoop()
+<<<<<<< HEAD
 except KeyboardInterrupt:
     print("\nExiting!")
 except:
     clientLoop()
+=======
+except:
+    clinetLoop()
+>>>>>>> 99e3b669f5b505c17d638b1bfe6d4a7f1122a454
