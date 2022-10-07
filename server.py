@@ -138,7 +138,7 @@ class Connection:
     
     def receiveResp(self):
         print("\tClient (" + str(self.addr[0]) + ") response: '" + str(self.socket.recv(BUFFER_SIZE).decode()).strip() + "'")
-
+        return
         
 #DEFAULT VALUES
 SERVER_ADDR = "127.0.0.1"
