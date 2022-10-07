@@ -41,11 +41,14 @@ class Team():
 
 class Service():
 
-    def __init__(self, name, identifier):
+    def __init__(self, name):
         self.name = name
         self.clients = []
-        self.identifier = identifier
+        self.identifier = list()
         self.breaks = dict()
+    
+    def addIdentifier(self,host):
+        self.identifier.append(host)
 
     def getBreaks(self):
         pass #Parse file stored in config for breaks
@@ -334,7 +337,7 @@ def assignTeam(client, team):
 
 def assignService(client, serviceIndex):
     for service in SERVICES:
-        if serviceIndex == str(SERVICES[service].identifier):
+        if serviceIndex in SERVICES[service].identifier:
             SERVICES[service].assign(client)
 
 def listTeams():
@@ -551,14 +554,19 @@ def shutdown_clients():
     for conn in CURRENT_CONNECTIONS:
         conn.send("reset_connection".encode())
 
+def createService(service,identifier):
+    if service not in SERVICES:
+        SERVICES[service] = Service(service) #make the service
+        print("Successfully created service: " + service)
+    SERVICES[service].addIdentifier(identifier) #add an Identifier
+    print("Successfully added identifier " + identifier + " to service: " + service)
 #Takes in config file and creates necessary objects 
 def setup():
-    try:
+    # try:
         with open("config.json") as config:
             config = json.load(config) #Load the config file
         for service in config["services"][0]: #Create a service for each service
-            SERVICES[service] = Service(service,config["services"][0][service])
-            print("Successfully created service: " + service)
+            createService(service,config["services"][0][service])
         global TEAMS_INT
         TEAMS_INT = int(config["topology"][0]["teams"]) #Pull the # of all teams
         for i in range(TEAMS_INT): #Create all teams
@@ -574,11 +582,11 @@ def setup():
         SERVER_ADDR = config["topology"][0]["serverIP"]
         global SERVER_PORT
         SERVER_PORT = int(config["topology"][0]["serverPort"])
-    except:
-        print("Could not parse config file! Please restart C2 with the correct format!")
-    global server_sock
-    server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #bind the server to that IP and port
-    server_sock.bind((SERVER_ADDR, SERVER_PORT))
+    # except:
+    #     print("Could not parse config file! Please restart C2 with the correct format!")
+        global server_sock
+        server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #bind the server to that IP and port
+        server_sock.bind((SERVER_ADDR, SERVER_PORT))
 
 if __name__ == "__main__":
     print("[SERVER] Server is starting...") 
