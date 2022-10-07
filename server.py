@@ -10,15 +10,9 @@ from cmd import Cmd
 
 
 #TODO A user can make groups and add clients to groups. The user then can select from each group which client to connect to.
-#TODO Read from config file to determine teams and services
-#TODO If a connection is received from an IP that is in the config file, assign the team and service automatically
-#TODO Assign team function: List all unassigned clients. Select a client at an index, then list all teams that the user can add the client to.
-#TODO When a client connects, add them to the unassigned group
-#TODO replace all client connections with the client class
 #TODO Develop new shell with cmd module
 #TODO Encrypt traffic
 #TODO Store commands in config file
-#TODO Exit does not end connection, but resets the client to keep trying to connect.
 
 #TODO The sever knows how many teams and what boxes are on each team. The user can use ls -all to see all teams that are unconnected and connected.
 
@@ -87,7 +81,6 @@ class Service():
     #TODO Each service has stored commands to break it
     pass
 
-#Class to store IP, port, connection, and tags for the 
 class Connection:
     def __init__(self, addr, socket):
         UNASSIGNED_CONNECTIONS.append(self)
@@ -137,8 +130,7 @@ class Connection:
         self.socket.send(command[0].encode())
         return self.socket.recv(BUFFER_SIZE).decode()
         
-    
-#Take the clients message of if the reverse shell was started or not
+#DEFAULT VALUES
 SERVER_ADDR = "127.0.0.1"
 SERVER_PORT = 8080
 BUFFER_SIZE = 1024 * 128 #128KB max size
@@ -593,6 +585,4 @@ if __name__ == "__main__":
     print("[SERVER] Server is starting...") 
     setup()
     time.sleep(1)
-    #when a client joins, assign them to the correct service
-
     create_threads()

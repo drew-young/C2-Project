@@ -1,0 +1,16 @@
+The goal of this project in the end:
+
+
+Server Commands:
+ls - Lists all clients
+lsteam - Lists all clients with a yes or no to connection
+sel - List teams then list clients from each team to connect to
+service - List all services
+
+
+Service Shell: (Take in service)
+ls - List all breaks and their purpose for the service
+sel - Select a break to send (confirm before sending)
+shell - Provides a shell that sends 
+clients - lists clients that are currently connected
+

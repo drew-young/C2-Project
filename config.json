@@ -17,8 +17,8 @@
     "teamFormat": [
         {
             "router":"10.0.x.1",
-            "ssh":"10.0.x.2",
-            "icmp":"10.0.x.3"
+            "linux":"10.0.x.2",
+            "windows":"10.0.x.3"
         }
     ]
  }
