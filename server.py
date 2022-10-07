@@ -68,7 +68,10 @@ class Service():
                         # x = threading.Thread(target=self.clients[client].sendCommand(userIn))
                         # x.start()
                         client.getSocket().send(userIn.encode())
+                        resp = threading.Thread(target=client.receiveResp)
+                        resp.start() #server needs to receive response or it will just hang
                         print("Successfully sent command to: " + str(client.getAddr()))
+                        time.sleep(.5)
                     except:
                         print("Failed to send command to client: " + str(client.getAddr()))
                 print("Command sent to " + str(len(self.clients)) + " clients.")
@@ -132,6 +135,10 @@ class Connection:
     def sendCommand(self,command): #Send command to client and return output
         self.socket.send(command[0].encode())
         return self.socket.recv(BUFFER_SIZE).decode()
+    
+    def receiveResp(self):
+        print("\tClient (" + str(self.addr[0]) + ") response: '" + str(self.socket.recv(BUFFER_SIZE).decode()).strip() + "'")
+
         
 #DEFAULT VALUES
 SERVER_ADDR = "127.0.0.1"
