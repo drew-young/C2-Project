@@ -1,3 +1,4 @@
+import json
 import subprocess
 import os
 import socket, threading, time
@@ -45,6 +46,28 @@ class Team():
                 pass
 
 class Service():
+
+    def __init__(self, name, identifier):
+        self.name = name
+        self.clients = dict()
+        self.identifier = identifier
+        self.breaks = dict()
+
+    def getBreaks():
+        pass #Parse file stored in config for breaks
+
+    def listBreaks():
+        pass #List all breaks
+
+    def selectBreak():
+        pass #Select break from list to use on all, then confirm to make sure
+
+    def shell():
+        pass #take commands and send to all clients, print all responses with their ip
+    
+    def listClients():
+        pass #list clients that are active in the shell
+
     #TODO Each service has stored commands to break it
     pass
 
@@ -101,6 +124,7 @@ CURRENT_CONNECTIONS = []
 CURRENT_CONNECTIONS_CLASS = []
 CURRENT_ADDRESSES = []
 TEAMS = {}
+SERVICES = {}
 UNASSIGNED_CONNECTIONS = []
 IP_FORMAT = "X.X.TEAM.HOST"
 
@@ -496,6 +520,31 @@ def shutdown_clients():
     for conn in CURRENT_CONNECTIONS:
         conn.send("reset_connection".encode())
 
+#Takes in config file and creates necessary objects 
+def setup():
+    try:
+        with open("config.json") as config:
+            config = json.load(config) #Load the config file
+        for service in config["services"][0]: #Create a service for each service
+            SERVICES[service] = Service(service,config["services"][0][service])
+            print("Successfully created service: " + service)
+        global TEAMS_INT
+        TEAMS_INT = int(config["topology"][0]["teams"]) #Pull the # of all teams
+        for i in range(TEAMS_INT): #Create all teams
+            addTeam(str(i))
+            # print("Successfuly created team: " + str(i))
+        global IP_FORMAT
+        IP_FORMAT = config["topology"][0]["ipSyntax"]
+        global SERVER_ADDR
+        SERVER_ADDR = config["topology"][0]["serverIP"]
+        global SERVER_PORT
+        SERVER_PORT = config["topology"][0]["serverPort"]  
+    except:
+        print("Could not parse config file! Please restart C2 with the correct format!")
+
 if __name__ == "__main__":
     print("[SERVER] Server is starting...") 
+    setup()
+    time.sleep(3)
+    #when a client joins, assign them to the correct service
     create_threads()

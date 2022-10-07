@@ -1,8 +1,17 @@
 {
+    "services": [
+        {
+        "ssh": "1",
+        "icmp": "2",
+        "ftp": "3"
+        }
+    ],
     "topology": [
        {
-          "teams": "10",
-          "serverIP": "192.168.69.0"
+          "teams": "2",
+          "serverIP": "127.0.0.1",
+          "serverPort": "8080",
+          "ipSyntax":"X.X.TEAM.HOST"
        }
     ],
     "teamFormat": [
