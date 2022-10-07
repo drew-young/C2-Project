@@ -336,7 +336,6 @@ def assignService(client, serviceIndex):
     for service in SERVICES:
         if serviceIndex == str(SERVICES[service].identifier):
             SERVICES[service].assign(client)
-            return
 
 def listTeams():
     print("Team's Connections:")
