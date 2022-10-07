@@ -189,8 +189,8 @@ def startServer():
             # print(f"[SERVER] Active Connections: {threading.activeCount() - 6}")
             # print("cmd>")
     except (KeyboardInterrupt, SystemExit, ConnectionAbortedError):
-        shutdown_clients()
         server_sock.close()
+        shutdown_clients()
         SERVER_UP = False
         
 #Take socket and addr and issue shell
