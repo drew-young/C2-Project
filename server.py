@@ -63,7 +63,19 @@ class Service():
         pass #Select break from list to use on all, then confirm to make sure
 
     def shell(self):
-        pass #take commands and send to all clients, print all responses with their ip
+        userIn = input("Enter a command to send to all " + self.name + " clients: ")
+        while userIn.lower() != "exit":
+            if userIn != "":
+                for client in self.clients:
+                    try:
+                        # x = threading.Thread(target=self.clients[client].sendCommand(userIn))
+                        # x.start()
+                        client.getSocket().send(userIn.encode())
+                        print("Successfully sent command to: " + str(client.getAddr()))
+                    except:
+                        print("Failed to send command to client: " + str(client.getAddr()))
+                print("Command sent to " + str(len(self.clients)) + " clients.")
+            userIn = input("Enter a command to send to all " + self.name + " clients: ")
     
     def listClients(self):
         pass #list clients that are active in the shell
@@ -120,6 +132,10 @@ class Connection:
             addTeam(str(team))
         assignTeam(self,TEAMS[team])
         assignService(self,service)
+
+    def sendCommand(self,command): #Send command to client and return output
+        self.socket.send(command[0].encode())
+        return self.socket.recv(BUFFER_SIZE).decode()
         
     
 #Take the clients message of if the reverse shell was started or not
@@ -260,6 +276,7 @@ def handleCommand():
                     \n\tUse 'lsteam' to list each team's connections. \
                     \n\tUse 'assign' to assign a client to a team. \
                     \n\tUse 'mkteam' to create a team. \
+                    \n\tUse 'service' to list services. \
                     \n\tUse 'help' to show this menu. \
                     \n\tUse 'exit' to quit the program.")
             elif cmd.lower() == "exit":
@@ -268,6 +285,8 @@ def handleCommand():
                 shutdown_clients()
                 server_sock.close()
                 break
+            elif "service" in cmd.lower():
+                serviceShell()
             else:
                 print("Command unknwon. Use 'help' to list commands.")
         except (KeyboardInterrupt, SystemExit, ConnectionAbortedError):
@@ -275,6 +294,18 @@ def handleCommand():
         except Exception as e:
             print("Invalid use of command! \n" + str(e))
             
+def serviceShell():
+    userIn = "notAService"
+    while userIn not in SERVICES.keys():
+        if userIn.lower() == "exit":
+            return
+        print("\nPlease select a service below: ")
+        for service in SERVICES:
+            print("\t>> " + service)
+        userIn = input("Enter the name of the service you want to select: ")
+    service = SERVICES[userIn]
+    service.shell()
+
 #List Current Connections
 def list_clients():
     results = ""
@@ -314,8 +345,9 @@ def assignTeam(client, team):
 
 def assignService(client, serviceIndex):
     for service in SERVICES:
-        if serviceIndex == service.identifier:
-            service.assign(client)
+        if serviceIndex == str(SERVICES[service].identifier):
+            SERVICES[service].assign(client)
+            return
 
 def listTeams():
     print("Team's Connections:")
@@ -547,9 +579,9 @@ def setup():
         global IP_FORMAT
         IP_FORMAT = config["topology"][0]["ipSyntax"]
         global SERVICE_INDEX
-        SERVICE_INDEX = IP_FORMAT.index("HOST")
+        SERVICE_INDEX = IP_FORMAT.split(".").index("HOST")
         global TEAM_INDEX
-        TEAM_INDEX = IP_FORMAT.index("TEAM")
+        TEAM_INDEX = IP_FORMAT.split(".").index("TEAM")
         global SERVER_ADDR
         SERVER_ADDR = config["topology"][0]["serverIP"]
         global SERVER_PORT
@@ -562,4 +594,5 @@ if __name__ == "__main__":
     setup()
     time.sleep(1)
     #when a client joins, assign them to the correct service
+
     create_threads()
