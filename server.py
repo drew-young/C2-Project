@@ -574,12 +574,12 @@ def setup():
         global SERVER_ADDR
         SERVER_ADDR = config["topology"][0]["serverIP"]
         global SERVER_PORT
-        SERVER_PORT = config["topology"][0]["serverPort"]  
-        global server_sock
-        server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #bind the server to that IP and port
-        server_sock.bind((SERVER_ADDR, SERVER_PORT))
+        SERVER_PORT = int(config["topology"][0]["serverPort"])
     except:
         print("Could not parse config file! Please restart C2 with the correct format!")
+    global server_sock
+    server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #bind the server to that IP and port
+    server_sock.bind((SERVER_ADDR, SERVER_PORT))
 
 if __name__ == "__main__":
     print("[SERVER] Server is starting...") 
