@@ -142,12 +142,12 @@ SERVICES = {}
 UNASSIGNED_CONNECTIONS = []
 IP_FORMAT = "X.X.TEAM.HOST"
 
-#If the user starts the server and wants to specify the ip to host on
-if len(sys.argv) == 2:
-    SERVER_ADDR = sys.argv[1]
-elif len(sys.argv) == 3:
-    SERVER_ADDR = sys.argv[1]
-    SERVER_PORT = int(sys.argv[2])
+# #If the user starts the server and wants to specify the ip to host on <<OLD>>
+# if len(sys.argv) == 2:
+#     SERVER_ADDR = sys.argv[1]
+# elif len(sys.argv) == 3:
+#     SERVER_ADDR = sys.argv[1]
+#     SERVER_PORT = int(sys.argv[2])
 
 server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_sock.bind((SERVER_ADDR, SERVER_PORT))
@@ -578,6 +578,9 @@ def setup():
         SERVER_ADDR = config["topology"][0]["serverIP"]
         global SERVER_PORT
         SERVER_PORT = config["topology"][0]["serverPort"]  
+        global server_sock
+        server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #bind the server to that IP and port
+        server_sock.bind((SERVER_ADDR, SERVER_PORT))
     except:
         print("Could not parse config file! Please restart C2 with the correct format!")
 
