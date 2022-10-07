@@ -1,9 +1,9 @@
 {
     "services": [
         {
-        "ssh": "1",
-        "icmp": "2",
-        "ftp": "3"
+        "ssh": 1,
+        "icmp": 2,
+        "ftp": 3
         }
     ],
     "topology": [

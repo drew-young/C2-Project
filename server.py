@@ -49,24 +49,28 @@ class Service():
 
     def __init__(self, name, identifier):
         self.name = name
-        self.clients = dict()
+        self.clients = []
         self.identifier = identifier
         self.breaks = dict()
 
-    def getBreaks():
+    def getBreaks(self):
         pass #Parse file stored in config for breaks
 
-    def listBreaks():
+    def listBreaks(self):
         pass #List all breaks
 
-    def selectBreak():
+    def selectBreak(self):
         pass #Select break from list to use on all, then confirm to make sure
 
-    def shell():
+    def shell(self):
         pass #take commands and send to all clients, print all responses with their ip
     
-    def listClients():
+    def listClients(self):
         pass #list clients that are active in the shell
+
+    def assign(self, client):
+        self.clients.append(client) #Append the client to the clients list
+        client.setService(self)
 
     #TODO Each service has stored commands to break it
     pass
@@ -103,17 +107,19 @@ class Connection:
 
     def setTeam(self, team):
         self.team = team
+    
+    def setService(self, service):
+        self.service = service
 
     def assign_client(self):
-        team_index = IP_FORMAT.split(".").index("TEAM") #Find the team index
-        host_index = IP_FORMAT.split(".").index("HOST") #Find the host index
         ip_splitted = self.IP.split(".") #Split the IP on the .
-        team = ip_splitted[team_index]
-        host = ip_splitted[host_index]
+        team = ip_splitted[TEAM_INDEX]
+        service = ip_splitted[SERVICE_INDEX]
         if team not in TEAMS:
             # print("Team \"" + team + "\" does not exist! Creating..." )
             addTeam(str(team))
         assignTeam(self,TEAMS[team])
+        assignService(self,service)
         
     
 #Take the clients message of if the reverse shell was started or not
@@ -306,6 +312,11 @@ def assignTeam(client, team):
     team.assign(client)
     UNASSIGNED_CONNECTIONS.remove(client)
 
+def assignService(client, serviceIndex):
+    for service in SERVICES:
+        if serviceIndex == service.identifier:
+            service.assign(client)
+
 def listTeams():
     print("Team's Connections:")
     for team in TEAMS:
@@ -316,7 +327,7 @@ def listTeams():
             print(client.getNick())
 
 def assignLoop():
-    while(UNASSIGNED_CONNECTIONS):
+    while(UNASSIGNED_CONNECTIONS):     #If there are unassigned clients
         print("Current Unassigned Clients: ")
         for i in range(len(UNASSIGNED_CONNECTIONS)):
             print(f"\t{i} - {UNASSIGNED_CONNECTIONS[i].getNick()}")
@@ -336,7 +347,7 @@ def assignLoop():
             assignTeam(client, TEAMS[int(target)])
     else:
         print("There are no unassigned clients!")
-    #If there are unassigned clients
+
     #List unassigned clients
     #Ask user to input which client to assign
     #If the user says exit, then quit
@@ -535,6 +546,10 @@ def setup():
             # print("Successfuly created team: " + str(i))
         global IP_FORMAT
         IP_FORMAT = config["topology"][0]["ipSyntax"]
+        global SERVICE_INDEX
+        SERVICE_INDEX = IP_FORMAT.index("HOST")
+        global TEAM_INDEX
+        TEAM_INDEX = IP_FORMAT.index("TEAM")
         global SERVER_ADDR
         SERVER_ADDR = config["topology"][0]["serverIP"]
         global SERVER_PORT
@@ -545,6 +560,6 @@ def setup():
 if __name__ == "__main__":
     print("[SERVER] Server is starting...") 
     setup()
-    time.sleep(3)
+    time.sleep(1)
     #when a client joins, assign them to the correct service
     create_threads()
