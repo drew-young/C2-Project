@@ -558,8 +558,10 @@ def createService(service,identifier):
     if service not in SERVICES:
         SERVICES[service] = Service(service) #make the service
         print("Successfully created service: " + service)
-    SERVICES[service].addIdentifier(identifier) #add an Identifier
-    print("Successfully added identifier " + identifier + " to service: " + service)
+    hosts = identifier.split(",")
+    for host in hosts:
+        SERVICES[service].addIdentifier(host) #add an Identifier
+        print("Successfully added identifier " + host + " to service: " + service)
 #Takes in config file and creates necessary objects 
 def setup():
     try:
