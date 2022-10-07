@@ -71,10 +71,10 @@ class Service():
                         resp = threading.Thread(target=client.receiveResp)
                         resp.start() #server needs to receive response or it will just hang
                         print("Successfully sent command to: " + str(client.getAddr()))
-                        time.sleep(.5)
                     except:
                         print("Failed to send command to client: " + str(client.getAddr()))
                 print("Command sent to " + str(len(self.clients)) + " clients.")
+            time.sleep(.2 * len(self.clients)) #wait .2 seconds for each client 
             userIn = input("Enter a command to send to all " + self.name + " clients: ")
     
     def listClients(self):
