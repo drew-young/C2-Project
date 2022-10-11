@@ -17,6 +17,8 @@ from cmd import Cmd
 #TODO The sever knows how many teams and what boxes are on each team. The user can use ls -all to see all teams that are unconnected and connected.
 
 
+#TODO if the client is already connected, drop the new connection
+
 # class MainShell(cmd):
 #     pass 
 
@@ -145,6 +147,7 @@ SERVER_ADDR = "127.0.0.1"
 SERVER_PORT = 8080
 BUFFER_SIZE = 1024 * 128 #128KB max size
 CURRENT_CONNECTIONS = []
+CURRENT_IPS = []
 CURRENT_CONNECTIONS_CLASS = []
 CURRENT_ADDRESSES = []
 TEAMS = {}
@@ -220,9 +223,13 @@ def startServer():
             # print()
             # print()
             # print(f"\n[SERVER] New Connection Received From: {addr[0]}:{addr[1]}")
+            if addr[0] in CURRENT_IPS: #if there is already a connection, drop the new one
+                client_sock.close()
+                continue
             CURRENT_CONNECTIONS_CLASS.append(Connection(addr,client_sock))
             CURRENT_CONNECTIONS.append(client_sock)
             CURRENT_ADDRESSES.append(addr)
+            CURRENT_IPS.append(addr[0])
             # print(f"[SERVER] Active Connections: {threading.activeCount() - 6}")
             # print("cmd>")
     except (KeyboardInterrupt, SystemExit, ConnectionAbortedError):

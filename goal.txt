@@ -14,3 +14,11 @@ sel - Select a break to send (confirm before sending)
 shell - Provides a shell that sends 
 clients - lists clients that are currently connected
 
+
+
+client shell
+end - ends current connection 
+
+main shell
+reset - removes shell which removes IP from list and closes socket
+
