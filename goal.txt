@@ -22,3 +22,9 @@ end - ends current connection
 main shell
 reset - removes shell which removes IP from list and closes socket
 
+NEED TO ADD:
+1. Service shell
+2. Custom breaks (open webserver on /, open webshell, stop service, etc.)
+3. Add hostname to LS team and can tell if the service is up or not
+4. Fix persistence
+5. Fix keylogger 

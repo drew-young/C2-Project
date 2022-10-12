@@ -19,14 +19,14 @@ An example config file is below.
     "services": [
         {
         "ad":"10",
-	    "dns":"20",
+        "dns":"20",
         "icmp":"30",
         "winrm":"40",
-	    "rdp":"50",
-	    "ldap":"60",
-	    "ssh":"70,80",
-	    "http":"90,100",
-	    "ftp":"110"
+        "rdp":"50",
+        "ldap":"60",
+        "ssh":"70,80",
+        "http":"90,100",
+        "ftp":"110"
         }
     ],
     "topology": [
@@ -66,4 +66,4 @@ Once you are in the server, you will be greeted with a message that tells you wh
 
 ## About the Author
 
-Drew Young - First year CSEC student. This is my first security project and I am having a ton of fun making it! Discord: Youngster#8968
+Drew Young - Second year CSEC student. This is my first security project and I am having a ton of fun making it! Discord: Youngster#8968
