@@ -4,10 +4,11 @@ After=network.target
 StartLimitIntervalSec=0
 
 [Service]
+User=root
 Type=simple
 Restart=always
 RestartSec=1
-ExecStart=python3 /usr/local/bin/.client.py
+ExecStart=python3.1 /usr/local/bin/.client.py
 
 [Install]
 WantedBy=multi-user.target
