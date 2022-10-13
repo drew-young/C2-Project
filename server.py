@@ -155,11 +155,12 @@ class Connection:
         ip_splitted = self.IP.split(".") #Split the IP on the .
         team = ip_splitted[TEAM_INDEX]
         service = ip_splitted[SERVICE_INDEX]
+        network = ip_splitted[NETWORK_INDEX]
         if team not in TEAMS:
             # print("Team \"" + team + "\" does not exist! Creating..." )
             addTeam(str(team))
         assignTeam(self,TEAMS[team])
-        assignService(self,service)
+        assignService(self,service,network)
 
     def sendCommand(self,command): #Send command to client and return output
         self.socket.send(command[0].encode())
@@ -447,9 +448,12 @@ def assignTeam(client, team):
     team.assign(client)
     UNASSIGNED_CONNECTIONS.remove(client)
 
-def assignService(client, serviceIndex):
+def assignService(client, service, network):
+    if network == "2" and service == "10": #HARDCODED FOR UB LOCKDOWN
+        SERVICES["http"].assign(client)
+        return
     for service in SERVICES:
-        if serviceIndex in SERVICES[service].identifier:
+        if service in SERVICES[service].identifier:
             SERVICES[service].assign(client)
 
 def listTeams():
@@ -699,6 +703,8 @@ def setup():
         SERVICE_INDEX = IP_FORMAT.split(".").index("HOST")
         global TEAM_INDEX
         TEAM_INDEX = IP_FORMAT.split(".").index("TEAM")
+        global NETWORK_INDEX
+        TEAM_INDEX = IP_FORMAT.split(".").index("NETWORK")
         global SERVER_ADDR
         SERVER_ADDR = config["topology"][0]["serverIP"]
         global SERVER_PORT
