@@ -704,7 +704,7 @@ def setup():
         global TEAM_INDEX
         TEAM_INDEX = IP_FORMAT.split(".").index("TEAM")
         global NETWORK_INDEX
-        TEAM_INDEX = IP_FORMAT.split(".").index("NETWORK")
+        NETWORK_INDEX = IP_FORMAT.split(".").index("NETWORK")
         global SERVER_ADDR
         SERVER_ADDR = config["topology"][0]["serverIP"]
         global SERVER_PORT

