@@ -11,7 +11,7 @@
 	    "http":"40,50",
 	    "ftp":"60",
 	    "c2":"194",
-	    "test":"208,74,193,57"
+	    "test":"208,74,193,57,1"
         }
     ],
     "topology": [
@@ -22,11 +22,60 @@
           "ipSyntax":"X.X.TEAM.HOST"
        }
     ],
-    "teamFormat": [
+    "breaks": [
         {
-            "router":"10.0.x.1",
-            "linux":"10.0.x.2",
-            "windows":"10.0.x.3"
+            "ssh": [
+                {
+                    "Stop Service":"systemctl stop ssh"
+                }
+            ],
+            "ad":[
+                {
+                    "Windows Break":"echo Windows"
+                }
+            ],
+            "dns": [
+                {
+                    "Windows Break":"echo Windows"
+                }
+            ],
+            "icmp":[
+                {
+                    "Stop Ping":"echo \"1\" > /proc/sys/net/ipv4/icmp_echo_ignore_all",
+                    "Persistent Stop Ping":"echo \"net.ipv4.icmp_echo_ignore_all = 1\" >> /etc/sysctl.conf; sysctl -p",
+                    "IP Tables Block":"iptables -A INPUT -p icmp -j DROP; /etc/init.d/iptables save"
+                }
+            ],
+            "winrm": [
+                {
+
+                }
+            ],
+            "rdp":[
+                {
+
+                }
+            ],
+            "ldap": [
+                {
+
+                }
+            ],
+            "http":[
+                {
+
+                }
+            ],
+            "ftp": [
+                {
+
+                }
+            ],
+            "test":[
+                {
+                    "test":"echo hi | wall"
+                }
+            ]
         }
     ]
  }

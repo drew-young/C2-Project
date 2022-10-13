@@ -40,6 +40,8 @@ An example config file is below.
  }
 ```
 
+The user must also have the "client.go" file compiled and placed on a remote server for the client to pull. 
+
 ## How to Use
 The server.py file can be run after the config.json file has been created.
 

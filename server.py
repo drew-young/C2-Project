@@ -53,13 +53,42 @@ class Service():
         self.identifier.append(host)
 
     def getBreaks(self):
+        with open("config.json") as file:
+            self.breaks = json.load(file)["breaks"]
+            self.breaks = self.breaks[0][self.name][0]
         pass #Parse file stored in config for breaks
 
     def listBreaks(self):
-        pass #List all breaks
+        print("Breaks:")
+        for b in self.breaks:
+            print(f"\t{b} - {self.breaks[b]}")
 
-    def selectBreak(self):
-        pass #Select break from list to use on all, then confirm to make sure
+    def sendBreak(self):
+        print("Select a break to send. ")
+        self.getBreaks()
+        self.listBreaks()
+        selected = None
+        while selected != "exit":
+            selected = input("Input the name of a break to send: ")
+            if selected in self.breaks:
+                print("Send the command: " + self.breaks[selected] + "?")
+                userIn = input("Y/N: ")
+                if userIn.lower() == "y":
+                    print("Sending break to all clients.")
+                    for client in self.clients:
+                        try:
+                            client.getSocket().send(self.breaks[selected].encode())
+                            resp = threading.Thread(target=client.receiveResp)
+                            resp.start() #server needs to receive response or it will just hang
+                            print("Successfully sent command to: " + str(client.getAddr()))
+                        except:
+                            print("Failed to send command to client: " + str(client.getAddr()))
+                    print("Command sent to " + str(len(self.clients)) + " clients.")
+                    time.sleep(.2 * len(self.clients)) #wait .2 seconds for each client 
+                else:
+                    print("Cancelled!")
+            else:
+                print("Selected break not in breaks!")
 
     def shell(self):
         userIn = input("Enter a command to send to all " + self.name + " clients: ")
@@ -80,7 +109,9 @@ class Service():
             userIn = input("Enter a command to send to all " + self.name + " clients: ")
     
     def listClients(self):
-        pass #list clients that are active in the shell
+        print("Active Clients: ")
+        for client in self.clients:
+            print("\t" + str(client.IP))
 
     def assign(self, client):
         self.clients.append(client) #Append the client to the clients list
@@ -345,10 +376,33 @@ def serviceShell():
             return
         print("\nPlease select a service below: ")
         for service in SERVICES:
-            print("\t>> " + service)
+            print("\t>> " + service + " - " + str(len(SERVICES[service].clients)) + " active clients")
         userIn = input("Enter the name of the service you want to select: ")
     service = SERVICES[userIn]
-    service.shell()
+    while "exit" not in userIn:
+        userIn = input(f"{service.name}>").lower()
+        if "help" in userIn:
+            print("Client help menu:")
+            print("\tEnter ls to list all stored breaks and their purpose")
+            print("\tEnter select to select a break to send")
+            print("\tEnter shell for a shell to every client connected under this service")
+            print("\tEnter clients for a list of currently connected clients")
+            print("\tUse reload to reload the break list")
+        elif "ls" in userIn or "list" in userIn:
+            service.getBreaks()
+            service.listBreaks()
+        elif "select" in userIn or "sel" in userIn:
+            service.sendBreak()
+        elif "shell" in userIn:
+            service.shell()
+        elif "clients" in userIn:
+            service.listClients()
+        elif "reload" in userIn:
+            service.getBreaks()
+        elif "exit" in userIn:
+            break
+        else:
+            print("Invalid command!")
 
 #List Current Connections
 def list_clients():
