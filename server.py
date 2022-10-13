@@ -48,11 +48,10 @@ class Service():
     def addIdentifier(self,host):
         self.identifier.append(host)
 
-    def getBreaks(self):
+    def getBreaks(self):#Parse file stored in config for breaks
         with open("config.json") as file:
             self.breaks = json.load(file)["breaks"]
             self.breaks = self.breaks[0][self.name][0]
-        pass #Parse file stored in config for breaks
 
     def listBreaks(self):
         print("Breaks:")
