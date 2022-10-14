@@ -185,7 +185,10 @@ class Connection:
     def getIP(self):
         self.socket.send("getIP".encode())
         self.IP = self.socket.recv(BUFFER_SIZE).decode()
-        self.serviceID = self.IP.split(".")[SERVICE_INDEX]
+        try:
+            self.serviceID = self.IP.split(".")[SERVICE_INDEX]
+        except:
+            self.serviceID = "0" #if the IP can not be found, just make it 0.
         
 #DEFAULT VALUES
 SERVER_ADDR = "127.0.0.1"
