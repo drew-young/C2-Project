@@ -189,6 +189,10 @@ class Connection:
             self.serviceID = self.IP.split(".")[SERVICE_INDEX]
         except:
             self.serviceID = "0" #if the IP can not be found, just make it 0.
+            self.IP = self.addr[0] #default to the NAT IP
+    
+    def setIP(self, IP):
+        self.IP = IP
         
 #DEFAULT VALUES
 SERVER_ADDR = "127.0.0.1"
@@ -547,6 +551,8 @@ def client_console(client): #previously took in cmd
                 client.setNickName(newCMD)
             elif "reset" in newCMD.lower():
                 connection.socket.send("reset_connection".encode())
+            elif "setip" in newCMD.lower():
+                client.setIP(input("Enter IP to set client to: "))
             elif "help" in newCMD: #Help menu
                 print("\nHelp Menu:\
                     \n\tUse 'exit' to return to main menu. \
@@ -559,6 +565,7 @@ def client_console(client): #previously took in cmd
                     \n\tUse 'ncport' to get the port the shell is listening on.\
                     \n\tUse 'setnick' to set the nickname of the machine.\
                     \n\tUse 'ENDCONNECTION' in shell to end the connection.\
+                    \n\tUse 'setIP' to set the client IP\
                     \n\tUse 'tty' to start a new TTY in netcat.\n")
             elif "exit" in newCMD:
                 break
