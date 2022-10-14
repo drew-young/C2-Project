@@ -282,7 +282,7 @@ def startServer():
 #Take socket and addr and issue shell
 def handleClient(client):
     client_sock = client.getSocket()
-    addr = client.getAddr()
+    addr = client.getIP()
     while True:
         try:
             user_in = input()
