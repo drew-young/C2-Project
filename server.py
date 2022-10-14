@@ -119,7 +119,7 @@ class Connection:
     def __init__(self, addr, socket):
         UNASSIGNED_CONNECTIONS.append(self)
         self.tags = list()
-        self.IP = self.getIP()
+        self.IP = addr[0]
         self.port = addr[1]
         self.socket = socket
         self.addr = addr
@@ -127,6 +127,8 @@ class Connection:
         self.team = 'N/A'
         self.service = 'N/A'
         self.tags = []
+        self.getIP()
+        print(print("Connection from: " + str(self.IP)))
         self.assign_client()
     
     def addTags(self, tag):
@@ -179,7 +181,8 @@ class Connection:
             return False
     
     def getIP(self):
-        return self.sendCommand("getIP".encode())
+        self.socket.send("getIP".encode())
+        self.IP = self.socket.recv(BUFFER_SIZE).decode()
         
 #DEFAULT VALUES
 SERVER_ADDR = "127.0.0.1"
