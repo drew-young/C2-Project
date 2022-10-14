@@ -119,7 +119,7 @@ class Connection:
     def __init__(self, addr, socket):
         UNASSIGNED_CONNECTIONS.append(self)
         self.tags = list()
-        self.IP = addr[0]
+        self.IP = self.getIP()
         self.port = addr[1]
         self.socket = socket
         self.addr = addr
@@ -177,8 +177,9 @@ class Connection:
             return False
         except:
             return False
-        
-
+    
+    def getIP(self):
+        return self.sendCommand("getIP".encode())
         
 #DEFAULT VALUES
 SERVER_ADDR = "127.0.0.1"
