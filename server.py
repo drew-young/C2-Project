@@ -95,11 +95,11 @@ class Service():
                         client.getSocket().send(userIn.encode())
                         resp = threading.Thread(target=client.receiveResp)
                         resp.start() #server needs to receive response or it will just hang
-                        print("Successfully sent command to: " + str(client.getAddr()))
+                        print("Successfully sent command to: " + str(client.IP))
                     except:
-                        print("Failed to send command to client: " + str(client.getAddr()))
+                        print("Failed to send command to client: " + str(client.IP))
                 print("Command sent to " + str(len(self.clients)) + " clients.")
-            time.sleep(.2 * len(self.clients)) #wait .2 seconds for each client 
+            time.sleep(.05 * len(self.clients)) #wait .05 seconds for each client 
             userIn = input("Enter a command to send to all " + self.name + " clients: ")
     
     def listClients(self):
@@ -155,7 +155,6 @@ class Connection:
         return self.getIP()
 
     def assign_client(self):
-        self.getIP()
         ip_splitted = self.IP.split(".") #Split the IP on the .
         team = ip_splitted[TEAM_INDEX]
         service = ip_splitted[SERVICE_INDEX]
@@ -171,7 +170,7 @@ class Connection:
         return self.socket.recv(BUFFER_SIZE).decode()
     
     def receiveResp(self):
-        print("\tClient (" + str(self.addr[0]) + ") response: '" + str(self.socket.recv(BUFFER_SIZE).decode()).strip() + "'")
+        print("\tClient (" + str(self.IP) + ") response: '" + str(self.socket.recv(BUFFER_SIZE).decode()).strip() + "'")
         return
     
     #returns true if client is up
@@ -268,13 +267,15 @@ def startServer():
             # print()
             # print()
             # print(f"\n[SERVER] New Connection Received From: {addr[0]}:{addr[1]}")
-            # if addr[0] in CURRENT_IPS: #if there is already a connection, drop the new one
-            #     client_sock.close()
-            #     continue
-            CURRENT_CONNECTIONS_CLASS.append(Connection(addr,client_sock))
+            client_sock.send("getIP".encode())
+            if client_sock.recv(BUFFER_SIZE).decode() in CURRENT_IPS: #if there is already a connection, drop the new one
+                client_sock.close()
+                continue
+            X = Connection(addr,client_sock)
+            CURRENT_CONNECTIONS_CLASS.append(X)
             CURRENT_CONNECTIONS.append(client_sock)
             CURRENT_ADDRESSES.append(addr)
-            CURRENT_IPS.append(addr[0])
+            CURRENT_IPS.append(X.IP)
             # print(f"[SERVER] Active Connections: {threading.activeCount() - 6}")
             # print("cmd>")
     except (KeyboardInterrupt, SystemExit, ConnectionAbortedError):
@@ -459,9 +460,9 @@ def assignService(client, service, network):
     if network == "2" and service == "10": #HARDCODED FOR UB LOCKDOWN
         SERVICES["http"].assign(client)
         return
-    for service in SERVICES:
-        if service in SERVICES[service].identifier:
-            SERVICES[service].assign(client)
+    for i in SERVICES:
+        if service in SERVICES[i].identifier:
+            SERVICES[i].assign(client)
 
 def listTeams():
     print("Team's Connections:")
