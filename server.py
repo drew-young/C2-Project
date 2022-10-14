@@ -126,6 +126,7 @@ class Connection:
         self.team = 'N/A'
         self.service = 'N/A'
         self.tags = []
+        self.serviceID = 'N/A'
         self.getIP()
         self.assign_client()
     
@@ -154,6 +155,7 @@ class Connection:
         return self.getIP()
 
     def assign_client(self):
+        self.getIP()
         ip_splitted = self.IP.split(".") #Split the IP on the .
         team = ip_splitted[TEAM_INDEX]
         service = ip_splitted[SERVICE_INDEX]
@@ -184,6 +186,7 @@ class Connection:
     def getIP(self):
         self.socket.send("getIP".encode())
         self.IP = self.socket.recv(BUFFER_SIZE).decode()
+        self.serviceID = self.IP.split(".")[SERVICE_INDEX]
         
 #DEFAULT VALUES
 SERVER_ADDR = "127.0.0.1"
