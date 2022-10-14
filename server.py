@@ -157,7 +157,7 @@ class Connection:
     def assign_client(self):
         ip_splitted = self.IP.split(".") #Split the IP on the .
         team = ip_splitted[TEAM_INDEX]
-        service = ip_splitted[SERVICE_INDEX]
+        service = self.serviceID
         network = ip_splitted[NETWORK_INDEX]
         if team not in TEAMS:
             # print("Team \"" + team + "\" does not exist! Creating..." )
