@@ -127,7 +127,6 @@ class Connection:
         self.service = 'N/A'
         self.tags = []
         self.getIP()
-        print(print("Connection from: " + str(self.IP)))
         self.assign_client()
     
     def addTags(self, tag):
@@ -152,7 +151,7 @@ class Connection:
         self.service = service
 
     def getIP(self):
-        return self.IP
+        return self.getIP()
 
     def assign_client(self):
         ip_splitted = self.IP.split(".") #Split the IP on the .
