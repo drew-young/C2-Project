@@ -34,7 +34,7 @@ class Team():
         print("> Team " + self.identity + ":")
         for client in self.clients:
             if client.isUp():
-                print("    >> " + client.getIP())
+                print("    >> " + client.IP)
 
 class Service():
 
