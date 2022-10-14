@@ -290,10 +290,10 @@ def handleClient(client):
                 client_sock.send(user_in.encode())
                 break
             elif user_in == '':
-                print(f"{addr[0]}>",end='')
+                print(f"{addr}>",end='')
             elif user_in.split()[0] == "cd":
                 client_sock.send(user_in.encode())
-                print(f"{addr[0]}>",end='')
+                print(f"{addr}>",end='')
                 continue
             else:
                 client_sock.send(user_in.encode())
@@ -301,16 +301,16 @@ def handleClient(client):
                 serv_resp = client_sock.recv(BUFFER_SIZE).decode()
                 client_sock.settimeout(None) #reset timeout
                 print(f"{serv_resp}")
-                print(f"{addr[0]}>",end='')
+                print(f"{addr}>",end='')
         except socket.timeout as e:
             print("Process timed out. \n" + str(e))
-            print(f"{addr[0]}>",end='')
+            print(f"{addr}>",end='')
         except BrokenPipeError as e:
             print("Connection closed. Broken pipe.")
             break
         except Exception as e:
             print("Error sending command! \n" + str(e))
-            print(f"{addr[0]}>",end='')
+            print(f"{addr}>",end='')
             continue
 
 def copyKey(client_sock):
