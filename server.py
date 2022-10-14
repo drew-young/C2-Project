@@ -8,7 +8,6 @@ import pty
 from cmd import Cmd
 
 
-
 #TODO A user can make groups and add clients to groups. The user then can select from each group which client to connect to.
 #TODO Develop new shell with cmd module
 #TODO Encrypt traffic
@@ -35,7 +34,7 @@ class Team():
         print("> Team " + self.identity + ":")
         for client in self.clients:
             if client.isUp():
-                print("    >> " + client.getNick())
+                print("    >> " + client.getIP())
 
 class Service():
 
@@ -151,6 +150,9 @@ class Connection:
     
     def setService(self, service):
         self.service = service
+
+    def getIP(self):
+        return self.IP
 
     def assign_client(self):
         ip_splitted = self.IP.split(".") #Split the IP on the .
