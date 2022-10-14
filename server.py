@@ -265,9 +265,9 @@ def startServer():
             # print()
             # print()
             # print(f"\n[SERVER] New Connection Received From: {addr[0]}:{addr[1]}")
-            if addr[0] in CURRENT_IPS: #if there is already a connection, drop the new one
-                client_sock.close()
-                continue
+            # if addr[0] in CURRENT_IPS: #if there is already a connection, drop the new one
+            #     client_sock.close()
+            #     continue
             CURRENT_CONNECTIONS_CLASS.append(Connection(addr,client_sock))
             CURRENT_CONNECTIONS.append(client_sock)
             CURRENT_ADDRESSES.append(addr)
