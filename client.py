@@ -224,7 +224,7 @@ def clientLoop():
                 break
             elif "getIP" in command:
                 regex = re.compile(r'(10\.\d{1,2}\.\d{1,3}\.\d{1,3})')
-                IP = subprocess.run("ifconfig | grep inet", shell=True,stdout=subprocess.PIPE)
+                IP = subprocess.run("ip a | grep inet", shell=True,stdout=subprocess.PIPE)
                 IP = str(IP)
                 IP = regex.search(IP)[0]
                 s.send(str(IP).encode())
