@@ -28,3 +28,17 @@ NEED TO ADD:
 3. Add hostname to LS team and can tell if the service is up or not
 4. Fix persistence
 5. Fix keylogger 
+
+
+
+Figure out how to parse IPs
+Remove persistence from root to not disclose the IP
+Remove listener on client
+Fix keylogger to always log in a file at /var/notkeylogging.txt
+Add callbacks to know what clients are connected
+Tell server what IP addresses exist and what to expect, keep checking in to see if we still have a connection
+
+
+
+#detect os, if its freebsd do ifconfig (uname -e)
+else do ip a

@@ -1,6 +1,0 @@
-- name: install curl
-#ansible.builtin.package:
-  name: curl
-  state: present
-
-- name: copy file

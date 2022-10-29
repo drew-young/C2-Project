@@ -156,14 +156,19 @@ class Connection:
 
     def assign_client(self):
         ip_splitted = self.IP.split(".") #Split the IP on the .
-        team = ip_splitted[TEAM_INDEX]
-        service = self.serviceID
-        network = ip_splitted[NETWORK_INDEX]
+        if ip_splitted[0] == IP_FORMAT.split(".")[0]: #Check if the host is LAN or cloud
+            teamIndex = TEAM_INDEX
+            serviceIndex = SERVICE_INDEX
+        else:
+            teamIndex = TEAM_INDEX_CLOUD
+            serviceIndex = SERVICE_INDEX_CLOUD
+        self.serviceID = self.IP.split(".")[serviceIndex]
+        team = ip_splitted[teamIndex]
         if team not in TEAMS:
             # print("Team \"" + team + "\" does not exist! Creating..." )
             addTeam(str(team))
         assignTeam(self,TEAMS[team])
-        assignService(self,service,network)
+        assignService(self,self.serviceID)
 
     def sendCommand(self,command): #Send command to client and return output
         self.socket.send(command[0].encode())
@@ -185,11 +190,6 @@ class Connection:
     def getIP(self):
         self.socket.send("getIP".encode())
         self.IP = self.socket.recv(BUFFER_SIZE).decode()
-        try:
-            self.serviceID = self.IP.split(".")[SERVICE_INDEX]
-        except:
-            self.serviceID = "0" #if the IP can not be found, just make it 0.
-            self.IP = self.addr[0] #default to the NAT IP
     
     def setIP(self, IP):
         self.IP = IP
@@ -463,10 +463,7 @@ def assignTeam(client, team):
     team.assign(client)
     UNASSIGNED_CONNECTIONS.remove(client)
 
-def assignService(client, service, network):
-    if network == "2" and service == "10": #HARDCODED FOR UB LOCKDOWN
-        SERVICES["http"].assign(client)
-        return
+def assignService(client, service):
     for i in SERVICES:
         if service in SERVICES[i].identifier:
             SERVICES[i].assign(client)
@@ -715,18 +712,22 @@ def setup():
         for i in range(TEAMS_INT): #Create all teams
             addTeam(str(i))
             # print("Successfuly created team: " + str(i))
+        global SERVER_ADDR
+        SERVER_ADDR = config["topology"][0]["serverIP"]
+        global SERVER_PORT
+        SERVER_PORT = int(config["topology"][0]["serverPort"])
         global IP_FORMAT
         IP_FORMAT = config["topology"][0]["ipSyntax"]
         global SERVICE_INDEX
         SERVICE_INDEX = IP_FORMAT.split(".").index("HOST")
         global TEAM_INDEX
         TEAM_INDEX = IP_FORMAT.split(".").index("TEAM")
-        global NETWORK_INDEX
-        NETWORK_INDEX = IP_FORMAT.split(".").index("NETWORK")
-        global SERVER_ADDR
-        SERVER_ADDR = config["topology"][0]["serverIP"]
-        global SERVER_PORT
-        SERVER_PORT = int(config["topology"][0]["serverPort"])
+        global IP_FORMAT_CLOUD
+        IP_FORMAT_CLOUD = config["topology"][0]["ipSyntaxCloud"]
+        global SERVICE_INDEX_CLOUD
+        SERVICE_INDEX_CLOUD = IP_FORMAT_CLOUD.split(".").index("HOST")
+        global TEAM_INDEX_CLOUD
+        TEAM_INDEX_CLOUD = IP_FORMAT_CLOUD.split(".").index("TEAM")
     except:
         print("Could not parse config file! Please restart C2 with the correct format!")
         global server_sock
