@@ -138,10 +138,10 @@ class Service():
         client.setService(self)
 
 class Connection:
-    def __init__(self, addr, socket):
+    def __init__(self, addr, socket, IP):
         UNASSIGNED_CONNECTIONS.append(self)
         self.tags = list()
-        self.IP = addr[0]
+        self.IP = IP
         self.port = addr[1]
         self.socket = socket
         self.addr = addr
@@ -150,7 +150,6 @@ class Connection:
         self.service = 'N/A'
         self.tags = []
         self.serviceID = 'N/A'
-        self.getIP()
         self.assign_client()
     
     def addTags(self, tag):
@@ -304,11 +303,12 @@ def startServer():
             # print()
             # print(f"\n[SERVER] New Connection Received From: {addr[0]}:{addr[1]}")
             client_sock.send("getIP".encode())
-            if client_sock.recv(BUFFER_SIZE).decode() in CURRENT_IPS: #if there is already a connection, drop the new one
+            IP = client_sock.recv(BUFFER_SIZE).decode()
+            if IP in CURRENT_IPS: #if there is already a connection, drop the new one
                 client_sock.send("ENDCONNECTION".encode())
                 continue
             try:
-                X = Connection(addr,client_sock)
+                X = Connection(addr,client_sock, IP)
             except:
                 continue
             CURRENT_CONNECTIONS_CLASS.append(X)
