@@ -307,7 +307,12 @@ def startServer():
             if client_sock.recv(BUFFER_SIZE).decode() in CURRENT_IPS: #if there is already a connection, drop the new one
                 client_sock.send("ENDCONNECTION".encode())
                 continue
-            X = Connection(addr,client_sock)
+            try:
+                X = Connection(addr,client_sock)
+            except:
+                client_sock.send("reset_connection".encode())
+                client_sock.close()
+                continue
             CURRENT_CONNECTIONS_CLASS.append(X)
             CURRENT_CONNECTIONS.append(client_sock)
             CURRENT_ADDRESSES.append(addr)
