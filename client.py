@@ -226,7 +226,7 @@ def clientLoop():
                 break
             elif "getIP" in command:
                 OS = subprocess.run("uname -s", shell=True,capture_output=True,text=True).stdout
-                regex = re.compile(r'(10\.\d{1,2}\.\d{1,3}\.\d{1,3})|(172\.\d{1,2}\.\d{1,3}\.\d{1,3})|(127\.\d{1,2}\.\d{1,3}\.\d{1,3})') #hard code for IRSeC, look for 127.X.X.X, 172.X.X.X, or 10.X.X.X
+                regex = re.compile(r'(10\.\d{1,2}\.\d{1,3}\.\d{1,3})|(172\.\d{1,2}\.\d{1,3}\.\d{1,3})') #hard code for IRSeC, look for 127.X.X.X, 172.X.X.X, or 10.X.X.X
                 # regex2 = re.compile(r'(172\.\d{1,2}\.\d{1,3}\.\d{1,3})') #hard code for IRSeC
                 # regex3 = re.compile(r'(127\.\d{1,2}\.\d{1,3}\.\d{1,3})') #hard code for IRSeC - test
                 if "Darwin" in OS:
