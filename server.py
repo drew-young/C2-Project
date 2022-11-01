@@ -11,12 +11,6 @@ from cmd import Cmd
 #TODO A user can make groups and add clients to groups. The user then can select from each group which client to connect to.
 #TODO Develop new shell with cmd module
 #TODO Encrypt traffic
-#TODO Store commands in config file
-
-#TODO The sever knows how many teams and what boxes are on each team. The user can use ls -all to see all teams that are unconnected and connected.
-
-
-#TODO if the client is already connected, drop the new connection
 
 # class MainShell(cmd):
 #     pass 
