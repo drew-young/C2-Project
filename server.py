@@ -361,6 +361,10 @@ def handleClient(client):
             continue
 
 def removeClient(client):
+    try:
+        client.socket.send("reset_connection".encode())
+    except: 
+        pass
     CURRENT_IPS.remove(client.IP)
     for service in SERVICES:
         if client in SERVICES[service].clients:
@@ -734,7 +738,10 @@ def create_threads():
     t = threading.Thread(target=startServer) 
     t.daemon = True
     t.start()
-    time.sleep(1)
+    t = threading.Thread(target=checkInThread)
+    t.daemon = True
+    t.start()
+    time.sleep(.5)
     handleCommand()
 
 #Open TTY by connecting via netcat
@@ -823,6 +830,28 @@ def makeExpectedList(teamNumber):
         expected.append(tempHost)
         #use ipSyntaxCloud
     TEAMS[str(teamNumber)].expectedHosts = expected
+
+# def startCheckInThread():
+#     global server_sock_checkin
+#     server_sock_checkin = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #bind the check in server to that IP and port
+#     server_sock_checkin.bind((SERVER_ADDR, SERVER_PORT+5)) #start the checkin on the port + 5
+
+def checkInThread():
+    time.sleep(20)
+    while True:
+        for client in CURRENT_CONNECTIONS_CLASS:
+            try:
+                client.socket.send("beacon_ping".encode()) #send ping and expect a pong back
+                # print("Ping sent to: " + str(client.IP))
+                client.socket.settimeout(3.0) #timeout after 3 seconds of no recv
+                resp = client.socket.recv(BUFFER_SIZE).decode()
+                client.socket.settimeout(None) #reset timeout
+                if resp != "beacon_pong": #if the client sends something else back
+                    removeClient(client)
+                # print("Pong received from: " + str(client.IP))
+            except client.socket.timeout as e:
+                removeClient(client)
+        time.sleep(120) #check in every 2 minutes
 
 if __name__ == "__main__":
     print("[SERVER] Server is starting...") 
