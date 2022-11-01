@@ -21,11 +21,25 @@
     ],
     "topology": [
        {
-          "teams": "16",
-          "serverIP": "127.0.0.1",
-          "serverPort": "8080",
-          "ipSyntax":"127.TEAM.0.HOST",
-          "ipSyntaxCloud":"172.17.TEAM.HOST"
+        "teams": "16",
+        "serverIP": "127.0.0.1",
+        "serverPort": "8080",
+        "ipSyntax":"127.TEAM.0.HOST",
+        "ipSyntaxCloud":"172.17.TEAM.HOST"
+       },
+       {
+        "ozone":"10.TEAM.1.254",
+        "squid":"10.TEAM.1.1",
+        "penguin":"10.TEAM.1.2",
+        "sealion":"10.TEAM.1.3",
+        "albatross":"10.TEAM.1.4",
+        "orca":"10.TEAM.1.5",
+        "whale":"10.TEAM.1.6",
+        "pipeline":"172.17.TEAM.1",
+        "drill":"172.17.TEAM.2",
+        "overwatch":"172.17.TEAM.3",
+        "tank":"172.17.TEAM.4",
+        "test":"127.TEAM.0.1"
        }
     ],
     "breaks": [

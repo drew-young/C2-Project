@@ -144,6 +144,7 @@ class Connection:
         self.service = 'N/A'
         self.tags = []
         self.serviceID = 'N/A'
+        self.host = None
         self.assign_client()
     
     def addTags(self, tag):
@@ -189,6 +190,8 @@ class Connection:
             addTeam(str(team))
         assignTeam(self,TEAMS[team])
         assignService(self,self.serviceID,cloud)
+        for host in HOSTNAMES: #try to add this host to all hosts
+            host.addClient(self)
 
     def sendCommand(self,command): #Send command to client and return output
         self.socket.send(command[0].encode())
@@ -214,6 +217,55 @@ class Connection:
     
     def setIP(self, IP):
         self.IP = IP
+
+    def setHost(self,host):
+        self.host = host
+
+    def getHostname(self):
+        return self.host
+
+class Hostname:
+    def __init__(self,hostname, ipFormat):
+        self.clients = list()
+        self.hostname = hostname
+        self.ipFormat = ipFormat
+        self.expectedIPs = set()
+        for i in range(TEAMS_INT): #for the amount of teams
+            tempIP = self.ipFormat
+            self.expectedIPs.add(tempIP.replace("TEAM",str(i))) #add all expected IP's to a list
+    
+    def addClient(self,client):
+        if client.IP in self.expectedIPs:
+            self.clients.append(client)
+            client.setHost(self)
+    
+    def removeClient(self,client):
+        self.clients.remove(client)
+        client.setHost(None)
+    
+    def listHosts(self):
+        print(f"{self.hostname} ({self.ipFormat}):")
+        for client in self.clients:
+            try:
+                if client.isUp():
+                    print("  >>" + str(client.IP))
+                else:
+                    removeClient(client)
+                    # print("Connection lost to: " + str(client.IP))
+            except:
+                removeClient(client)
+    
+    def sendToAll(self,command):
+        for client in self.clients:
+            try:
+                client.getSocket().send(command.encode())
+                print("Successfully sent command to: " + str(client.IP))
+                resp = threading.Thread(target=client.receiveResp)
+                resp.start() #server needs to receive response or it will just hang
+            except:
+                print("Failed to send command to client: " + str(client.getAddr()))
+        print("Command sent to " + str(len(self.clients)) + " clients.")
+        time.sleep(.2 * len(self.clients)) #wait .2 seconds for each client 
         
 #DEFAULT VALUES
 SERVER_ADDR = "127.0.0.1"
@@ -229,6 +281,7 @@ UNASSIGNED_CONNECTIONS = []
 IP_FORMAT = "X.X.TEAM.HOST"
 HOSTS = set()
 CLOUDHOSTS = set()
+HOSTNAMES = list()
 
 # #If the user starts the server and wants to specify the ip to host on <<OLD>>
 # if len(sys.argv) == 2:
@@ -410,7 +463,7 @@ def handleCommand():
                 assignLoop()
             elif "mkteam" in cmd.lower():
                 addTeam(input("Input team name: "))
-            elif "select" in cmd.lower() or "sel" in cmd.lower():
+            elif cmd.lower() == "sel" or cmd.lower() == "select":
                 selectClient()
                 # client_console(cmd)
                 # client,addr = select_client(cmd)
@@ -421,6 +474,9 @@ def handleCommand():
             elif "lsall" in cmd.lower():
                 for team in TEAMS:
                     TEAMS[team].listExpectedClients()
+            elif "lshost" in cmd.lower():
+                for host in HOSTNAMES:
+                    host.listHosts()
             elif cmd.lower() == "help":
                 print("\nHelp Menu: \n\tUse 'list' to list active connections. \
                     \n\tUse 'select' to choose a client from the list. \
@@ -429,6 +485,7 @@ def handleCommand():
                     \n\tUse 'mkteam' to create a team. \
                     \n\tUse 'lsall' to list all expected clients and their status. \
                     \n\tUse 'service' to list services. \
+                    \n\tUse 'lshost' to list all hosts under a hostname. \
                     \n\tUse 'help' to show this menu. \
                     \n\tUse 'exit' to quit the program.")
             elif cmd.lower() == "exit":
@@ -439,6 +496,8 @@ def handleCommand():
                 break
             elif "service" in cmd.lower():
                 serviceShell()
+            elif "selhost" in cmd.lower():
+                hostnameShell()
             else:
                 print("Command unknwon. Use 'help' to list commands.")
         except (KeyboardInterrupt, SystemExit, ConnectionAbortedError):
@@ -446,6 +505,28 @@ def handleCommand():
         except Exception as e:
             print("Invalid use of command! \n" + str(e))
             
+def hostnameShell():
+    #ask the user which host to select
+    #ask the user what command to send to host
+    #host.sendToAll()
+    print("Select a host to open a shell for:")
+    for host in HOSTNAMES:
+        print(f">> {host.hostname} ({len(host.clients)})")
+    while True:
+        userIn = input("Enter a hostname: ")
+        if userIn == "exit":
+            return
+        for host in HOSTNAMES:
+            if host.hostname == userIn:
+                while userIn != "exit":
+                    userIn = input(f"Enter a command to send to all '{host.hostname}' clients: ")
+                    if userIn == "exit":
+                        return
+                    if input(f"Are you sure you want to send '{userIn}' to all clients with the hostname '{host.hostname}'? (Y/N): ").lower() == "y":
+                        host.sendToAll(userIn)
+                    else:
+                        print("Exiting")
+
 def serviceShell():
     userIn = "notAService"
     while userIn not in SERVICES.keys():
@@ -812,7 +893,13 @@ def setup():
             addTeam(str(i))
             makeExpectedList(i)
             # print("Successfuly created team: " + str(i))
-    except:
+        global HOSTNAMES
+        hostDict = config["topology"][1]
+        for host in hostDict:
+            HOSTNAMES.append(Hostname(host,hostDict[host]))
+            print("Created the host: '" + host + "' with IP format: '" + hostDict[host] + "'")
+        #parse each host and make a new host for each hostname
+    except Exception as e:
         print("Could not parse config file! Please restart C2 with the correct format!")
         global server_sock
     server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #bind the server to that IP and port

@@ -36,3 +36,6 @@ Fix keylogger to always log in a file at /var/notkeylogging.txt
 else do ip a
 
 uname -n gives hostname
+
+
+allow client to send to all clients on host
