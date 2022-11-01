@@ -849,9 +849,13 @@ def checkInThread():
                 if resp != "beacon_pong": #if the client sends something else back
                     removeClient(client)
                 # print("Pong received from: " + str(client.IP))
-            except client.socket.timeout as e:
+            except (BrokenPipeError,ConnectionRefusedError,ConnectionResetError) as e:
                 removeClient(client)
-        time.sleep(120) #check in every 2 minutes
+            # except client.socket.timeout as e:
+            #     removeClient(client)
+            except: #anything else breaks? keep going
+                pass
+        time.sleep(60) #check in every minute
 
 if __name__ == "__main__":
     print("[SERVER] Server is starting...") 

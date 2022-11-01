@@ -251,9 +251,11 @@ def clientLoop():
                 clientLoop()
 
 #If anything breaks, just reset the connection
-try:
-    clientLoop()
-except KeyboardInterrupt:
-    print("\nExiting!")
-except: 
-    clientLoop()
+while True:
+    try:
+        clientLoop()
+    except KeyboardInterrupt:
+        print("\nExiting!")
+        break
+    except: 
+        clientLoop()
