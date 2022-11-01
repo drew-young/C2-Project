@@ -42,3 +42,7 @@ Tell server what IP addresses exist and what to expect, keep checking in to see 
 
 #detect os, if its freebsd do ifconfig (uname -e)
 else do ip a
+
+uname -n gives hostname
+
+beacon_ping from server returns beacon_pong from client

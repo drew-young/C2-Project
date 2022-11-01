@@ -1,24 +1,92 @@
 {
     "services": [
         {
-        "ssh": "1,2,3",
-        "icmp": "2",
-        "ftp": "3"
+        "router":"254",
+        "ad":"1",
+	    "dns":"1",
+        "icmp":"2,6",
+        "winrm":"3",
+	    "ssh":"4",
+        "imap":"5"
+        }
+    ],
+    "cloud_services":[
+        {
+        "ftp":"1",
+        "ssh":"1",
+        "http":"2",
+        "sql":"2",
+        "smb":"4"
         }
     ],
     "topology": [
        {
-          "teams": "2",
+          "teams": "16",
           "serverIP": "127.0.0.1",
-          "serverPort": "8080",
-          "ipSyntax":"X.X.TEAM.HOST"
+          "serverPort": "8081",
+          "ipSyntax":"10.TEAM.1.HOST",
+          "ipSyntaxCloud":"172.17.TEAM.HOST"
        }
     ],
-    "teamFormat": [
+    "breaks": [
         {
-            "router":"10.0.x.1",
-            "linux":"10.0.x.2",
-            "windows":"10.0.x.3"
+            "ssh": [
+                {
+                    "Stop Service":"systemctl stop ssh"
+                }
+            ],
+            "ad":[
+                {
+                    "Windows Break":"echo Windows"
+                }
+            ],
+            "dns": [
+                {
+                    "Windows Break":"echo Windows"
+                }
+            ],
+            "icmp":[
+                {
+                    "Stop Ping":"echo \"1\" > /proc/sys/net/ipv4/icmp_echo_ignore_all",
+                    "Persistent Stop Ping":"echo \"net.ipv4.icmp_echo_ignore_all = 1\" >> /etc/sysctl.conf; sysctl -p",
+                    "IP Tables Block":"iptables -A INPUT -p icmp -j DROP; /etc/init.d/iptables save"
+                }
+            ],
+            "winrm": [
+                {
+
+                }
+            ],
+            "rdp":[
+                {
+
+                }
+            ],
+            "ldap": [
+                {
+
+                }
+            ],
+            "http":[
+                {
+
+                }
+            ],
+            "ftp": [
+                {
+
+                }
+            ],
+            "test":[
+                {
+                    "test":"echo test | wall"
+                }
+            ],
+            "imap":[
+                {
+                    "test":"echo test | wall"
+                }
+            ]
         }
     ]
  }

@@ -1,25 +1,30 @@
 {
     "services": [
         {
-        "ad":"10",
-	    "dns":"10",
-        "icmp":"20,60",
-        "winrm":"20",
-	    "rdp":"30",
-	    "ldap":"30",
-	    "ssh":"40,50",
-	    "http":"40,50",
-	    "ftp":"60",
-	    "c2":"194",
-	    "test":"208,74,193,57,1"
+        "router":"254",
+        "ad":"1",
+	    "dns":"1",
+        "icmp":"2,6",
+        "winrm":"3",
+	    "ssh":"4",
+        "imap":"5"
+        }
+    ],
+    "cloud_services":[
+        {
+        "ftp":"1",
+        "ssh":"1",
+        "http":"2",
+        "sql":"2",
+        "smb":"4"
         }
     ],
     "topology": [
        {
-          "teams": "2",
-          "serverIP": "192.168.7.162",
+          "teams": "16",
+          "serverIP": "127.0.0.1",
           "serverPort": "8080",
-          "ipSyntax":"10.TEAM.1.HOST",
+          "ipSyntax":"127.TEAM.0.HOST",
           "ipSyntaxCloud":"172.17.TEAM.HOST"
        }
     ],
@@ -74,7 +79,12 @@
             ],
             "test":[
                 {
-                    "test":"echo hi | wall"
+                    "test":"echo test | wall"
+                }
+            ],
+            "imap":[
+                {
+                    "test":"echo test | wall"
                 }
             ]
         }
