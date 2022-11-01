@@ -494,9 +494,9 @@ def list_clients():
         try:
             cwd = None
             client.send(str.encode('pwd'))
-            cwd = client.recv(201480).decode()
+            cwd = client.recv(BUFFER_SIZE).decode()
             client.send(str.encode('whoami'))
-            whoami = client.recv(201480).decode()
+            whoami = client.recv(BUFFER_SIZE).decode()
             whoami = whoami.strip()
             if cwd is None or cwd == "":
                 CURRENT_CONNECTIONS.remove(i)
