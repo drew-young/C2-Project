@@ -207,7 +207,8 @@ class Connection:
     #returns true if client is up
     def isUp(self):
         try:
-            if "beacon_pong" in self.sendCommand("beacon_ping"): #send ping and if the response doesn't exist, it's not up
+            self.socket.send("beacon_ping".encode())
+            if self.socket.recv(BUFFER_SIZE).decode() == "beacon_pong": #send ping and if the response doesn't exist, it's not up
                 return True
             return False
         except:
