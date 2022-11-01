@@ -310,8 +310,6 @@ def startServer():
             try:
                 X = Connection(addr,client_sock)
             except:
-                client_sock.send("reset_connection".encode())
-                client_sock.close()
                 continue
             CURRENT_CONNECTIONS_CLASS.append(X)
             CURRENT_CONNECTIONS.append(client_sock)
