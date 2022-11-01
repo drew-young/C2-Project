@@ -207,7 +207,7 @@ class Connection:
     #returns true if client is up
     def isUp(self):
         try:
-            if self.sendCommand("whoami") != None: #send whoami and if the response doesn't exist, it's not up
+            if self.sendCommand("beacon_ping") == "beacon_pong": #send whoami and if the response doesn't exist, it's not up
                 return True
             return False
         except:
