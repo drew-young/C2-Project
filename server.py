@@ -365,14 +365,17 @@ def removeClient(client):
         client.socket.send("reset_connection".encode())
     except: 
         pass
-    CURRENT_IPS.remove(client.IP)
-    for service in SERVICES:
-        if client in SERVICES[service].clients:
-            SERVICES[service].clients.remove(client)
-    CURRENT_CONNECTIONS_CLASS.remove(client)
-    CURRENT_CONNECTIONS.append(client.socket)
-    CURRENT_ADDRESSES.append(client.addr)
-    client.team.unassign(client)
+    try: #try to remove everything, but it might already be gone
+        CURRENT_IPS.remove(client.IP)
+        for service in SERVICES:
+            if client in SERVICES[service].clients:
+                SERVICES[service].clients.remove(client)
+        CURRENT_CONNECTIONS_CLASS.remove(client)
+        CURRENT_CONNECTIONS.append(client.socket)
+        CURRENT_ADDRESSES.append(client.addr)
+        client.team.unassign(client)
+    except: 
+        pass
 
 def copyKey(client_sock):
     try:
