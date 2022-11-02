@@ -211,6 +211,7 @@ def clientLoop():
                     s.send("NO_DEPENDENCIES".encode())
             elif command == "reset_connection":
                 s.close() #close current connection and open a new one
+                sleep(5)
                 clientLoop()
             elif command == "ncport":
                 s.send(str(NCPORT).encode()) #Send the user the current NC port then open another one
@@ -252,6 +253,7 @@ def clientLoop():
             try:
                 s.send("Error on client side.".encode())
             except:
+                sleep(10)
                 clientLoop()
 
 #If anything breaks, just reset the connection
