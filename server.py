@@ -1,4 +1,5 @@
 import json
+from sqlite3 import connect
 import subprocess
 import os
 import socket, threading, time
@@ -450,6 +451,14 @@ def copyKey(client_sock):
     except:
         print("Private key NOT copied!")
     
+def clearConnections():
+    for connection in UNASSIGNED_CONNECTIONS:
+        try:
+            connection.send("reset_connection".encode())
+        except:
+            pass
+        UNASSIGNED_CONNECTIONS.remove(connection)
+
 #Main Console for C2
 def handleCommand():
     while True:
@@ -477,6 +486,8 @@ def handleCommand():
             elif "lshost" in cmd.lower():
                 for host in HOSTNAMES:
                     host.listHosts()
+            elif cmd.lower() == "clearcon":
+                clearConnections()
             elif cmd.lower() == "help":
                 print("\nHelp Menu: \n\tUse 'list' to list active connections. \
                     \n\tUse 'select' to choose a client from the list. \
@@ -486,6 +497,7 @@ def handleCommand():
                     \n\tUse 'lsall' to list all expected clients and their status. \
                     \n\tUse 'service' to list services. \
                     \n\tUse 'lshost' to list all hosts under a hostname. \
+                    \n\tUse 'clearcon' to send a reset to all unassigned clients. \
                     \n\tUse 'help' to show this menu. \
                     \n\tUse 'exit' to quit the program.")
             elif cmd.lower() == "exit":
