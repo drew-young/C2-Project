@@ -232,7 +232,7 @@ def clientLoop():
                     out = subprocess.run("ipconfig | findstr IPv4", shell=True,capture_output=True,text=True).stdout
                 else:
                     OS = subprocess.run("uname -s", shell=True,capture_output=True,text=True).stdout
-                    if "Darwin" in OS:
+                    if "Darwin" in OS or "FreeBSD" in OS:
                         out = subprocess.run("ifconfig | grep inet", shell=True,capture_output=True,text=True).stdout
                     else:
                         out = subprocess.run("ip a | grep inet", shell=True,capture_output=True,text=True).stdout
