@@ -236,7 +236,7 @@ def clientLoop():
                         out = subprocess.run("ifconfig | grep inet", shell=True,capture_output=True,text=True).stdout
                     else:
                         out = subprocess.run("ip a | grep inet", shell=True,capture_output=True,text=True).stdout
-                regex = re.compile(r'(10\.\d{1,2}\.\d{1,3}\.\d{1,3})|(172\.\d{1,2}\.\d{1,3}\.\d{1,3})') #hard code for IRSeC, look for 127.X.X.X, 172.X.X.X, or 10.X.X.X
+                regex = re.compile(r'(10\.\d{1,2}\.\d{1,3}\.\d{1,3})|(172\.\d{1,2}\.\d{1,3}\.\d{1,3})') #hard code for IRSeC, look for 172.X.X.X, or 10.X.X.X
                 out = str(out).strip()
                 IP = regex.search(out)[0]
                 s.send(str(IP).encode())
