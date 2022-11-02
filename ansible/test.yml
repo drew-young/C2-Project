@@ -1,0 +1,6 @@
+---
+  - name: Constant Control
+    become: yes
+    hosts: test
+    roles:
+      - constctrl

