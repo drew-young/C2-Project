@@ -44,7 +44,8 @@ class Team():
                     if client.isUp(): #if the client is up
                         print("    >> " + host) #print the host if all is true
                         continue
-            print("    >> " + host + " [X]") #print the host if it's down
+                else:
+                    print("    >> " + host + " [X]") #print the host if it's down
 
 class Service():
 

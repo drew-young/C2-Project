@@ -24,8 +24,8 @@
         "teams": "16",
         "serverIP": "127.0.0.1",
         "serverPort": "8080",
-        "ipSyntax":"127.TEAM.0.HOST",
-        "ipSyntaxCloud":"172.17.TEAM.HOST"
+        "ipSyntax":"10.TEAM.1.HOST",
+        "ipSyntaxCloud":"172.16.TEAM.HOST"
        },
        {
         "ozone":"10.TEAM.1.254",
