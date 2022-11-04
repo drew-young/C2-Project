@@ -961,16 +961,16 @@ def checkInThread():
         time.sleep(60) #check in every minute
 
 def sendUpdate(ips, name="constctrl"):
-    host = "https://pwnboard.win/pwn/boxaccess"
+    host = "http://pwnboard.win/pwn/boxaccess"
     # Here ips is a list of IP addresses to update
     # If we are only updating 1 IP, use "ip" and pass a string
     data = {'ips': ips, 'type': name}
     try:
         req = requests.post(host, json=data, timeout=3)
-        print(req.text)
+        # print(req.text)
         return True
     except Exception as E:
-        print(E)
+        # print(E)
         return False
 
 if __name__ == "__main__":
