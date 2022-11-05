@@ -355,8 +355,8 @@ def startServer():
             # print(f"\n[SERVER] New Connection Received From: {addr[0]}:{addr[1]}")
             client_sock.send("getIP".encode())
             IP = client_sock.recv(BUFFER_SIZE).decode()
+            drop = False #were not going to drop it
             for client in CURRENT_CONNECTIONS_CLASS: #if the client is already connected
-                drop = False #were not going to drop it
                 new = True #it is new
                 if IP == client.IP: #ping the client box and if we don't get pong back, drop the shell and take the new one
                     new = False #it isn't new, we already have it silly!
