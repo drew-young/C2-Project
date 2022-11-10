@@ -24,7 +24,7 @@
         "teams": "16",
         "serverIP": "127.0.0.1",
         "serverPort": "8080",
-        "ipSyntax":"10.TEAM.1.HOST",
+        "ipSyntax":"127.TEAM.1.HOST",
         "ipSyntaxCloud":"172.16.TEAM.HOST"
        },
        {

