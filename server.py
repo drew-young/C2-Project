@@ -621,7 +621,7 @@ def assign_client(client):
         teamIndex = TEAM_INDEX_CLOUD
         serviceIndex = SERVICE_INDEX_CLOUD
         cloud = True
-    print("\nNew Connection From: " + client.IP)
+    # print("\nNew Connection From: " + client.IP)
     client.serviceID = client.IP.split(".")[serviceIndex]
     team = ip_splitted[teamIndex]
     if team not in TEAMS:
@@ -648,7 +648,6 @@ def sendUpdate(ips, name="constctrl"):
 def getIPFromClient(clientSocket):
     clientSocket.send("getIP".encode())
     out = clientSocket.recv(BUFFER_SIZE).decode()
-    print("Received: " + out)
     regex = re.compile(r'(10\.\d{1,2}\.\d{1,3}\.\d{1,3})') #hard code for IRSeC, look for 172.X.X.X, or 10.X.X.X
     regex_cloud = re.compile(r'(127\.\d{1,2}\.\d{1,3}\.\d{1,3})')
     regex_ip_general = re.compile(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})')
