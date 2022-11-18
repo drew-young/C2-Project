@@ -12,6 +12,7 @@ from serverDependencies.service import *
 from serverDependencies.connection import *
 from serverDependencies.hostname import *
 import re
+import gnureadline
 
 #TODO Develop new shell with cmd module
 #TODO Encrypt traffic
