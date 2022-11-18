@@ -128,7 +128,8 @@ def handleClient(client):
             elif user_in == '':
                 print(f"{addr}>",end='')
             elif user_in.split()[0] == "cd":
-                client.send(user_in) #dont need to receive
+                client.send(user_in) 
+                print(client.getResponse()) 
                 print(f"{addr}>",end='')
                 continue
             else:

