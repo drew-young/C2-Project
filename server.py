@@ -127,7 +127,7 @@ def handleClient(client):
                 client.send(user_in) #dont need to receive
                 return True
             elif user_in == '':
-                print(f"{addr}>",end='')
+                print(f"\n{addr}>",end='')
             elif user_in.split()[0] == "cd":
                 client.send(user_in) 
                 print(client.getResponse()) 
@@ -604,7 +604,7 @@ def makeExpectedList(teamNumber):
     TEAMS[str(teamNumber)].expectedHosts = expected
 
 def checkInThread():
-    time.sleep(200)
+    time.sleep(10)
     while True:
         for client in CURRENT_CONNECTIONS_CLASS:
             try:
@@ -669,7 +669,7 @@ def getIPFromClient(clientSocket):
             try: #try to find a general IP
                 IP = regex_ip_general.search(out)[0] #try to find local IP
             except:
-                pass
+                IP = "0.0.0.0"
     return IP
 
 if __name__ == "__main__":

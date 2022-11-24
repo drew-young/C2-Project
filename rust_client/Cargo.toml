@@ -7,4 +7,4 @@ edition = "2021"
 
 [dependencies]
 env = "0.0.0"
-local-ip-address = "0.4.9"
+subprocess = "0.2.9"

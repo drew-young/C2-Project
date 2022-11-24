@@ -1,4 +1,23 @@
 {
+    "hosts":[
+        {
+            "hostname": "squid",
+            "ip": "10.1.x.1",
+            "os": "WINDOWS",
+            "service": [
+              "AD",
+              "DNS"
+            ]
+          },
+          {
+            "hostname": "penguin",
+            "ip": "10.1.x.2",
+            "os": "WINDOWS",
+            "service": [
+              "ICMP"
+            ]
+          }
+    ],
     "services": [
         {
         "router":"254",
