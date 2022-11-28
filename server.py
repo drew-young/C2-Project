@@ -62,8 +62,11 @@ def startServer():
                 if IP == client.IP: #ping the client box and if we don't get pong back, drop the shell and take the new one
                     new = False #it isn't new, we already have it silly!
                     try:
-                        if client.isConnected():
+                        if client.isUpCheck():
                             drop = True #cool we have a working shell, drop the new one
+                        else:
+                            client.socket = client_sock #bro the old shell is borked, just take the new one
+
                     except: #if the current socket doesn't work, just swap the sockets
                         client.socket = client_sock #bro the old shell is borked, just take the new one
                     break #stop looking through clients
@@ -155,6 +158,7 @@ def handleClient(client):
             continue
 
 def removeClient(client):
+    client.connected = False
     try: #try to remove everything, but it might already be gone
         client.connected = False
         for service in SERVICES:
