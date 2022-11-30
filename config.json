@@ -18,33 +18,13 @@
             ]
           }
     ],
-    "services": [
-        {
-        "router":"254",
-        "ad":"1",
-	    "dns":"1",
-        "icmp":"2,6",
-        "winrm":"3",
-	    "ssh":"4",
-        "imap":"5"
-        }
-    ],
-    "cloud_services":[
-        {
-        "ftp":"1",
-        "ssh":"1",
-        "http":"2",
-        "sql":"2",
-        "smb":"4"
-        }
-    ],
     "topology": [
-       {
+        {
         "teams": "16",
         "serverIP": "127.0.0.1",
         "serverPort": "8080",
-        "ipSyntax":"127.TEAM.1.HOST",
-        "ipSyntaxCloud":"172.16.TEAM.HOST"
+        "checkInPort": "8081",
+        "services":"ad,dns,ssh,ldap,rdp"
        },
        {
         "ozone":"10.TEAM.1.254",

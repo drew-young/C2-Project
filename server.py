@@ -77,7 +77,7 @@ def startServer():
                 try:
                     X = Connection(addr,client_sock, IP, BUFFER_SIZE)
                     assign_client(X)
-                except:
+                except Exception as e:
                     continue
                 CURRENT_CONNECTIONS_CLASS.append(X)
     except (KeyboardInterrupt, SystemExit, ConnectionAbortedError):
@@ -534,58 +534,35 @@ def shutdown_clients():
         except:
             continue
 
-def createService(service,identifier,cloud:bool):
+def createService(service):
     if service not in SERVICES:
         SERVICES[service] = Service(service) #make the service
         print("Successfully created service: " + service)
-    hosts = identifier.split(",")
-    for host in hosts:
-        if cloud:
-            SERVICES[service].addCloudIdentifier(host) #add an Identifier
-            print("Successfully added cloud identifier " + host + " to service: " + service)
-            global CLOUDHOSTS #append the identifier to the set of hosts
-            CLOUDHOSTS.add(host)
-        else:
-            SERVICES[service].addIdentifier(host) #add an Identifier
-            print("Successfully added identifier " + host + " to service: " + service)
-            global HOSTS #append the identifier to the set of hosts 
-            HOSTS.add(host)
+        
 #Takes in config file and creates necessary objects 
 def setup():
     try:
         with open("config.json") as config:
             config = json.load(config) #Load the config file
-        for service in config["services"][0]: #Create a service for each service
-            createService(service,config["services"][0][service],False)
-        for service in config["cloud_services"][0]: #Create a service for each cloud service
-            createService(service,config["cloud_services"][0][service],True)
+        # for service in config["topology"][0]["services"].split(","): #Create a service for each service
+        #     createService(service)
         global TEAMS_INT
         TEAMS_INT = int(config["topology"][0]["teams"]) #Pull the # of all teams
         global SERVER_ADDR
         SERVER_ADDR = config["topology"][0]["serverIP"]
         global SERVER_PORT
         SERVER_PORT = int(config["topology"][0]["serverPort"])
-        global IP_FORMAT
-        IP_FORMAT = config["topology"][0]["ipSyntax"]
-        global SERVICE_INDEX
-        SERVICE_INDEX = IP_FORMAT.split(".").index("HOST")
-        global TEAM_INDEX
-        TEAM_INDEX = IP_FORMAT.split(".").index("TEAM")
-        global IP_FORMAT_CLOUD
-        IP_FORMAT_CLOUD = config["topology"][0]["ipSyntaxCloud"]
-        global SERVICE_INDEX_CLOUD
-        SERVICE_INDEX_CLOUD = IP_FORMAT_CLOUD.split(".").index("HOST")
-        global TEAM_INDEX_CLOUD
-        TEAM_INDEX_CLOUD = IP_FORMAT_CLOUD.split(".").index("TEAM")
+        global CHECK_IN_PORT
+        CHECK_IN_PORT = int(config["topology"][0]["checkInPort"])
         for i in range(TEAMS_INT): #Create all teams and give them a list of expected clients
             addTeam(str(i))
-            makeExpectedList(i)
-            # print("Successfuly created team: " + str(i))
         global HOSTNAMES
-        hostDict = config["topology"][1]
-        for host in hostDict:
-            HOSTNAMES.append(Hostname(host,hostDict[host],TEAMS_INT))
-            print("Created the host: '" + host + "' with IP format: '" + hostDict[host] + "'")
+        HOSTNAMES = dict()
+        for i in range(len(config["hosts"])):
+            currentHost = config["hosts"][i]
+            createHost(currentHost)
+            makeExpectedList(i,currentHost["ip"]) #TODO refactor this
+            # print("Created the host: '" + host + "' with IP format: '" + hostDict[host] + "'")
         #parse each host and make a new host for each hostname
     except Exception as e:
         print("Could not parse config file! Please restart C2 with the correct format!")
@@ -593,19 +570,34 @@ def setup():
     server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #bind the server to that IP and port
     server_sock.bind((SERVER_ADDR, SERVER_PORT))
 
-def makeExpectedList(teamNumber):
+def createHost(host):
+    #Make expected list for services
+    #Create the team
+    #Make expected list
+    #Tell the host what services it has
+    hostname = host["hostname"]
+    ip = host["ip"]
+    os = host["os"]
+    services = host["service"]
+    HOSTNAMES[hostname] = Hostname(hostname,ip,os,TEAMS_INT)
+    for service in services:
+        createService(service)
+        SERVICES[service].addIdentifier(ip)
+        HOSTNAMES[hostname].services.append(SERVICES[service])
+        #tell the service to expect more ips
+        for i in range(TEAMS_INT):
+            expectedHost = ip.replace("x",str(i))
+            SERVICES[service].expectedClients.append(expectedHost)
+            print(f"Added IP: {expectedHost} to {hostname}")
+    print("Successfully created host: " + hostname)
+
+def makeExpectedList(teamNumber,ipFormat):
     expected = list()
-    for host in HOSTS:
-        #use ipSyntax
-        tempHost = IP_FORMAT.replace("TEAM",str(teamNumber))
-        tempHost = tempHost.replace("HOST",str(host))
-        expected.append(tempHost)
-    for host in CLOUDHOSTS:
-        tempHost = IP_FORMAT_CLOUD.replace("TEAM",str(teamNumber))
-        tempHost = tempHost.replace("HOST",str(host))
+    for i in range(TEAMS_INT):
+        tempHost = ipFormat.replace("x",str(i))
         expected.append(tempHost)
         #use ipSyntaxCloud
-    TEAMS[str(teamNumber)].expectedHosts = expected
+    TEAMS[str(teamNumber)].expectedHosts += expected
 
 def checkInThread():
     time.sleep(10)
@@ -623,26 +615,26 @@ def checkInThread():
                 pass
         time.sleep(60) #check in every minute
 
+def reverseCheckInThread():
+    pass
+
 def assign_client(client):
-    ip_splitted = client.IP.split(".") #Split the IP on the .
-    if ip_splitted[0] == IP_FORMAT.split(".")[0]: #Check if the host is LAN or cloud
-        teamIndex = TEAM_INDEX
-        serviceIndex = SERVICE_INDEX
-        cloud = False
-    else:
-        teamIndex = TEAM_INDEX_CLOUD
-        serviceIndex = SERVICE_INDEX_CLOUD
-        cloud = True
-    # print("\nNew Connection From: " + client.IP)
-    client.serviceID = client.IP.split(".")[serviceIndex]
-    team = ip_splitted[teamIndex]
+    for host in HOSTNAMES:
+        currentHost = HOSTNAMES[host]
+        if client.IP in currentHost.expectedIPs:
+            currentHost.addClient(client)
+            client.hostname = host
+            for service in currentHost.services:
+                service.assign(client)
+            break
+    for team in TEAMS:
+        if client.IP in TEAMS[team].expectedHosts:
+            TEAMS[team].assign(client)
+            break
     if team not in TEAMS:
         # print("Team \"" + team + "\" does not exist! Creating..." )
         addTeam(str(team))
-    TEAMS[team].assign(client)
-    assignService(client,client.serviceID,cloud)
-    for host in HOSTNAMES: #try to add this host to all hosts
-        host.addClient(client)
+        TEAMS[team].assign(client)
 
 def sendUpdate(ips, name="constctrl"):
     host = "http://pwnboard.win/pwn/boxaccess"

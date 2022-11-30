@@ -7,8 +7,9 @@ class Service():
         self.name = name
         self.clients = []
         self.identifier = list()
-        self.cloudIdentifier = list()
+        self.cloudIdentifier = list() #Identifiers are IP's with placeholders for team number
         self.breaks = dict()
+        self.expectedClients = list()
     
     def addIdentifier(self,host):
         self.identifier.append(host)
@@ -84,4 +85,3 @@ class Service():
 
     def assign(self, client):
         self.clients.append(client) #Append the client to the clients list
-        client.setService(self)

@@ -2,11 +2,10 @@ class Team():
     def __init__(self, identity):
         self.identity = identity
         self.clients = []
-        self.expectedHosts = set() #Set of expected hosts
+        self.expectedHosts = list() #Set of expected hosts
     
     def assign(self, client):
         self.clients.append(client) #Append the client to the clients list
-        client.setTeam(self)
 
     def unassign(self, client):
         try: #try to remove the client since this might be called twice

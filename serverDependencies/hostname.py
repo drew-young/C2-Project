@@ -2,23 +2,23 @@ import threading
 import time
 
 class Hostname:
-    def __init__(self,hostname, ipFormat, TEAMS_INT):
-        self.clients = list()
+    def __init__(self,hostname, ipFormat, os, TEAMS_INT):
         self.hostname = hostname
         self.ipFormat = ipFormat
-        self.expectedIPs = set()
+        self.os = os
+        self.services = list()
+        self.clients = list()
+        self.expectedIPs = list()
         for i in range(TEAMS_INT): #for the amount of teams
             tempIP = self.ipFormat
-            self.expectedIPs.add(tempIP.replace("TEAM",str(i))) #add all expected IP's to a list
-    
+            self.expectedIPs.append(tempIP.replace("x",str(i))) #add all expected IP's to a list
+
     def addClient(self,client):
         if client.IP in self.expectedIPs:
             self.clients.append(client)
-            client.setHost(self)
     
     def removeClient(self,client):
         self.clients.remove(client)
-        client.setHost(None)
     
     def listHosts(self):
         print(f"{self.hostname} ({self.ipFormat}):")

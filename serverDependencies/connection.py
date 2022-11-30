@@ -6,37 +6,24 @@ class Connection:
         self.IP = IP
         self.addr = addr
         self.port = addr[1]
-        self.team = 'N/A'
-        self.service = 'N/A'
-        self.serviceID = 'N/A'
-        self.host = None
         self.BUFFER_SIZE = BUFFER_SIZE
         self.connected = True
+        self.hostname = None
+
+    def getHostname(self):
+        return self.hostname
 
     def getSocket(self):
         return self.socket
     
     def getAddr(self):
         return self.addr
-    
-    def setTeam(self, team):
-        self.team = team
-    
-    def setService(self, service):
-        self.service = service
 
     def setIP(self, IP):
         self.IP = IP
 
-    def setHost(self,host):
-        self.host = host
-
-    def getHostname(self):
-        return self.host
-
     def sendCommand(self,command): 
         self.socket.send(str(command).encode())
-        # return self.socket.recv(self.BUFFER_SIZE).decode()
     
     def send(self,command): 
         self.socket.send(str(command).encode())
