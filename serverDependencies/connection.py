@@ -23,23 +23,32 @@ class Connection:
         self.IP = IP
 
     def sendCommand(self,command): 
-        self.socket.send(str(command).encode())
+        try:
+            self.socket.send(str(command).encode())
+        except:
+            print("[FAILURE] Command " + command + " could not be sent to " + self.IP)
     
     def send(self,command): 
-        self.socket.send(str(command).encode())
+        try:
+            self.socket.send(str(command).encode())
+        except:
+            print("[FAILURE] Command ''" + command + "'' could not be sent to: " + self.IP)
 
     def receiveResp(self):
-        print("\tClient (" + str(self.IP) + ") response: '" + str(self.socket.recv(self.BUFFER_SIZE).decode()).strip() + "'")
-        return 
-    
+        try:
+            print("\tClient (" + str(self.IP) + ") response: '" + str(self.socket.recv(self.BUFFER_SIZE).decode()).strip() + "'")
+            return 
+        except:
+            print("[FAILURE] Response failed from: " + self.IP)
+
     def getResponse(self):
         try:
-            self.socket.settimeout(3.0) #timeout after 3 seconds of no recv
+            self.socket.settimeout(1.5) #timeout after 3 seconds of no recv
             serv_resp = self.socket.recv(self.BUFFER_SIZE).decode()
             self.socket.settimeout(None) #reset timeout
             return serv_resp
         except socket.timeout as e:
-            print("Process did not return anything. \n" + str(e))
+            print("Process did not return anything. \n")
         
     def recv(self):
         try:

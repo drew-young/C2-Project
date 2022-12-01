@@ -29,9 +29,6 @@ TEAMS = {}
 SERVICES = {}
 UNASSIGNED_CONNECTIONS = []
 IP_FORMAT = "X.X.TEAM.HOST"
-HOSTS = set()
-CLOUDHOSTS = set()
-HOSTNAMES = list()
 
 #Start server and listen for new connections
 def startServer():
@@ -139,7 +136,7 @@ def handleClient(client):
             else:
                 client.send(user_in)
                 serv_resp = client.getResponse()
-                print(f"{serv_resp}")
+                if serv_resp: print(f"{serv_resp}")
                 print(f"{addr}>",end='')
         except socket.timeout as e:
             print("Process did not return anything. \n" + str(e))
@@ -253,12 +250,14 @@ def handleCommand():
 def hostnameShell():
     print("Select a host to open a shell for:")
     for host in HOSTNAMES:
+        host = HOSTNAMES[host]
         print(f">> {host.hostname} ({len(host.clients)})")
     while True:
         userIn = input("Enter a hostname: ")
         if userIn == "exit":
             return
         for host in HOSTNAMES:
+            host = HOSTNAMES[host]
             if host.hostname == userIn:
                 while userIn != "exit":
                     userIn = input(f"Enter a command to send to all '{host.hostname}' clients: ")

