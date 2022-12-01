@@ -11,7 +11,6 @@ class Team():
         try: #try to remove the client since this might be called twice
             self.clients.remove(client) #Append the client to the clients list
         except: pass
-        client.setTeam(None)
 
     def listClients(self):
         print("> Team " + self.identity + ":")

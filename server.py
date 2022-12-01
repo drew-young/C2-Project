@@ -158,12 +158,16 @@ def removeClient(client):
     client.connected = False
     try: #try to remove everything, but it might already be gone
         client.connected = False
+        CURRENT_CONNECTIONS_CLASS.remove(client)
         for service in SERVICES:
             if client in SERVICES[service].clients:
                 SERVICES[service].clients.remove(client)
-        client.team.unassign(client)
-        HOSTNAMES[HOSTNAMES.index(client.getHostname())].removeClient(client)
-        CURRENT_CONNECTIONS_CLASS.remove(client)
+        for host in HOSTNAMES:
+            if client.IP in HOSTNAMES[host].clients:
+                HOSTNAMES[host].removeClient(client)
+        for team in TEAMS:
+            if client.IP in TEAMS[team].clients:
+                TEAMS[team].unassign(client)
         client.socket.close()
     except Exception as e: 
         client.socket.close()
@@ -604,7 +608,8 @@ def checkInThread():
     while True:
         for client in CURRENT_CONNECTIONS_CLASS:
             try:
-                client.send("beacon_ping") #send ping and expect a pong back
+                if not client.send("beacon_ping"): #send ping and expect a pong back
+                    removeClient(client)
                 resp = client.recv()
                 sendUpdate([client.IP])
                 if resp != "beacon_pong": #if the client sends something else back
@@ -629,7 +634,8 @@ def assign_client(client):
             break
     else:
         print("Unexpected host connection from: " + client.IP)
-        addTeam("X")
+        if "X" not in TEAMS.keys():
+            addTeam("X")
         TEAMS["X"].assign(client)
         return
     for team in TEAMS:
@@ -676,5 +682,5 @@ def getIPFromClient(clientSocket):
 if __name__ == "__main__":
     print("[SERVER] Server is starting...") 
     setup()
-    time.sleep(1)
+    time.sleep(.2)
     create_threads()

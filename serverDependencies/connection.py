@@ -35,7 +35,8 @@ class Connection:
             self.socket.send(str(command).encode())
             return True
         except:
-            print("[FAILURE] Command \"" + command + "\" could not be sent to: " + self.IP)
+            if command != "beacon_ping":
+                print("[FAILURE] Command \"" + command + "\" could not be sent to: " + self.IP)
             return False
 
     def receiveResp(self):
@@ -48,7 +49,7 @@ class Connection:
 
     def getResponse(self):
         try:
-            self.socket.settimeout(1.5) #timeout after 3 seconds of no recv
+            self.socket.settimeout(5) #timeout after 5 seconds of no recv
             serv_resp = self.socket.recv(self.BUFFER_SIZE).decode()
             self.socket.settimeout(None) #reset timeout
             return serv_resp

