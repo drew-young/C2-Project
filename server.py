@@ -309,7 +309,8 @@ def list_clients():
     for client in CURRENT_CONNECTIONS_CLASS:
         try:
             cwd = None
-            client.send('pwd')
+            if not client.send('pwd'):
+                raise Exception
             cwd = client.recv()
             client.send('whoami')
             whoami = client.recv().strip()

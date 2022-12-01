@@ -25,21 +25,26 @@ class Connection:
     def sendCommand(self,command): 
         try:
             self.socket.send(str(command).encode())
+            return True
         except:
             print("[FAILURE] Command " + command + " could not be sent to " + self.IP)
+            return False
     
     def send(self,command): 
         try:
             self.socket.send(str(command).encode())
+            return True
         except:
-            print("[FAILURE] Command ''" + command + "'' could not be sent to: " + self.IP)
+            print("[FAILURE] Command \"" + command + "\" could not be sent to: " + self.IP)
+            return False
 
     def receiveResp(self):
         try:
             print("\tClient (" + str(self.IP) + ") response: '" + str(self.socket.recv(self.BUFFER_SIZE).decode()).strip() + "'")
-            return 
+            return True
         except:
             print("[FAILURE] Response failed from: " + self.IP)
+            return False
 
     def getResponse(self):
         try:
