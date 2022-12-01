@@ -627,6 +627,11 @@ def assign_client(client):
             for service in currentHost.services:
                 service.assign(client)
             break
+    else:
+        print("Unexpected host connection from: " + client.IP)
+        addTeam("X")
+        TEAMS["X"].assign(client)
+        return
     for team in TEAMS:
         if client.IP in TEAMS[team].expectedHosts:
             TEAMS[team].assign(client)

