@@ -639,7 +639,10 @@ def assign_client(client):
         TEAMS["X"].assign(client)
         return
     for team in TEAMS:
-        if client.IP in TEAMS[team].expectedHosts:
+        print(f"Client IP: {client.IP}\nList:")
+        print(TEAMS[team])
+        print(TEAMS[team].identity)
+        if TEAMS[team].isExpectedHost():
             TEAMS[team].assign(client)
             break
     if team not in TEAMS:

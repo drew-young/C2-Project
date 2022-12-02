@@ -29,3 +29,6 @@ class Team():
                         printed = True
             if not printed:
                 print("    >> " + host + " [X]") #print the host if it's down
+    
+    def isExpectedHost(self,IP):
+        return True if IP in self.expectedHosts else False
