@@ -565,7 +565,7 @@ def setup():
         for i in range(len(config["hosts"])):
             currentHost = config["hosts"][i]
             createHost(currentHost)
-            # makeExpectedList(i,currentHost["ip"]) #TODO refactor this
+            makeExpectedList(i,currentHost["ip"]) #TODO refactor this
             # print("Created the host: '" + host + "' with IP format: '" + hostDict[host] + "'")
         #parse each host and make a new host for each hostname
     except Exception as e:
@@ -595,13 +595,11 @@ def createHost(host):
             print(f"Added IP: {expectedHost} to {hostname}")
     print("Successfully created host: " + hostname)
 
-# def makeExpectedList(teamNumber,ipFormat):
-#     expected = list()
-#     for i in range(TEAMS_INT):
-#         tempHost = ipFormat.replace("x",str(i))
-#         expected.append(tempHost)
-#         #use ipSyntaxCloud
-#     TEAMS[str(teamNumber)].expectedHosts += expected
+def makeExpectedList(teamNumber,ipFormat):
+    for i in range(TEAMS_INT):
+        tempHost = ipFormat.replace("x",str(i))
+        TEAMS[str(i)].expectedHosts.append(tempHost)
+        #use ipSyntaxCloud
 
 def checkInThread():
     time.sleep(10)
@@ -639,16 +637,9 @@ def assign_client(client):
         TEAMS["X"].assign(client)
         return
     for team in TEAMS:
-        print(f"Client IP: {client.IP}\nList:")
-        print(TEAMS[team])
-        print(TEAMS[team].identity)
-        if TEAMS[team].isExpectedHost():
+        if TEAMS[team].isExpectedHost(client.IP):
             TEAMS[team].assign(client)
             break
-    if team not in TEAMS:
-        # print("Team \"" + team + "\" does not exist! Creating..." )
-        addTeam(str(team))
-        TEAMS[team].assign(client)
 
 def sendUpdate(ips, name="constctrl"):
     host = "http://pwnboard.win/pwn/boxaccess"
