@@ -56,6 +56,8 @@ def startServer():
             drop = False #were not going to drop it
             new = True #it is new
             for client in CURRENT_CONNECTIONS_CLASS: #if the client is already connected
+                print("New IP: " + IP)
+                print("Client IP: " + client.IP)
                 if IP == client.IP: #ping the client box and if we don't get pong back, drop the shell and take the new one
                     new = False #it isn't new, we already have it silly!
                     try:
@@ -220,7 +222,7 @@ def handleCommand():
                     TEAMS[team].listExpectedClients()
             elif "lshost" in cmd.lower():
                 for host in HOSTNAMES:
-                    host.listHosts()
+                    HOSTNAMES[host].listHosts()
             elif cmd.lower() == "resetall":
                 resetAll()
             elif cmd.lower() == "service":
