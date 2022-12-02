@@ -155,8 +155,7 @@ fn constant_checker(){
 
 
 fn main(){
-    // let ip = "129.21.49.57:5678";
-    let ip = "127.0.0.1:5678";
+    let ip = "129.21.49.57:5678";
     connect_to_router();
     loop{
         if !c2(&ip){
