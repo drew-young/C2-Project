@@ -7,13 +7,15 @@ CLIENTS = {}
 
 def server():
     server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #bind the server to that IP and port
-    server_sock.bind(("0.0.0.0", 5678))
+    server_sock.bind(("0.0.0.0", 5679))
     server_sock.listen(5)
     while 1:
         client_sock, addr = server_sock.accept() #always accept clients
         IP = getIPFromClient(client_sock) #get their IP
         if IP in CLIENTS.keys():
             client_sock.close()
+            client_sock.send("ENDCONNECTION")
+            continue
         CLIENTS[IP] = client_sock
         print("Connection from: " + IP)
 
