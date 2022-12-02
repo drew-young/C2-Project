@@ -77,7 +77,6 @@ def startServer():
                 except Exception as e:
                     continue
                 CURRENT_CONNECTIONS_CLASS.append(X)
-                print("relooping")
     except (KeyboardInterrupt, SystemExit, ConnectionAbortedError):
         server_sock.close()
         shutdown_clients()
