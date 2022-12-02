@@ -1,20 +1,78 @@
 {
     "hosts":[
         {
-            "hostname": "squid",
-            "ip": "10.1.x.1",
-            "os": "WINDOWS",
+            "hostname": "Ubuntu1",
+            "ip": "10.x.1.10",
+            "os": "Linux",
             "service": [
-              "AD",
+              "SSH",
+              "ICMP"
+            ]
+          },
+          {
+            "hostname": "Ubuntu2",
+            "ip": "10.x.1.40",
+            "os": "Linux",
+            "service": [
+              "SSH",
+              "ICMP"
+            ]
+          },
+          {
+            "hostname": "AADS Windows",
+            "ip": "10.x.1.60",
+            "os": "Windows",
+            "service": [
+              "LDAP",
               "DNS"
             ]
           },
           {
-            "hostname": "penguin",
-            "ip": "10.1.x.2",
-            "os": "WINDOWS",
+            "hostname": "Windows1",
+            "ip": "10.x.1.70",
+            "os": "Windows",
             "service": [
-              "ICMP"
+              "WinRM"
+            ]
+          },
+          {
+            "hostname": "Windows2",
+            "ip": "10.x.1.80",
+            "os": "Windows",
+            "service": [
+              "WinRM"
+            ]
+          },
+          {
+            "hostname": "Database",
+            "ip": "10.x.2.3",
+            "os": "Linux",
+            "service": [
+              "MySQL"
+            ]
+          },
+          {
+            "hostname": "Windows FTP",
+            "ip": "10.x.2.4",
+            "os": "Windows",
+            "service": [
+              "FTP"
+            ]
+          },
+          {
+            "hostname": "DevServer",
+            "ip": "10.x.2.10",
+            "os": "Linux",
+            "service": [
+              "HTTP"
+            ]
+          },
+          {
+            "hostname": "Web",
+            "ip": "10.x.2.2",
+            "os": "Linux",
+            "service": [
+              "HTTP"
             ]
           }
     ],
@@ -22,7 +80,7 @@
         {
         "teams": "16",
         "serverIP": "127.0.0.1",
-        "serverPort": "8080",
+        "serverPort": "5678",
         "checkInPort": "8081",
         "services":"ad,dns,ssh,ldap,rdp"
        },
