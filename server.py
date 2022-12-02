@@ -50,13 +50,11 @@ def startServer():
     SERVER_UP = True
     try:
         while SERVER_UP:
-            print("waiting for client")
             client_sock, addr = server_sock.accept()
             IP = getIPFromClient(client_sock)
             # IP = client_sock.recv(BUFFER_SIZE).decode()
             drop = False #were not going to drop it
             new = True #it is new
-            print("New IP: " + IP)
             for client in CURRENT_CONNECTIONS_CLASS: #if the client is already connected
                 if IP == client.IP: #ping the client box and if we don't get pong back, drop the shell and take the new one
                     new = False #it isn't new, we already have it silly!
@@ -73,11 +71,9 @@ def startServer():
                 client_sock.send("ENDCONNECTION".encode())
                 continue
             if new:
-                print("Making new connection")
                 try:
                     X = Connection(addr,client_sock, IP, BUFFER_SIZE)
                     assign_client(X)
-                    print("success")
                 except Exception as e:
                     continue
                 CURRENT_CONNECTIONS_CLASS.append(X)
