@@ -54,6 +54,7 @@ def startServer():
             IP = getIPFromClient(client_sock)
             if "15" in IP:
                 client_sock.send("ENDCONNECTION".encode())
+                continue
             # IP = client_sock.recv(BUFFER_SIZE).decode()
             drop = False #were not going to drop it
             new = True #it is new
