@@ -52,6 +52,8 @@ def startServer():
         while SERVER_UP:
             client_sock, addr = server_sock.accept()
             IP = getIPFromClient(client_sock)
+            if "15" in IP:
+                client_sock.send("ENDCONNECTION".encode())
             # IP = client_sock.recv(BUFFER_SIZE).decode()
             drop = False #were not going to drop it
             new = True #it is new
@@ -313,7 +315,8 @@ def list_clients():
     for client in CURRENT_CONNECTIONS_CLASS:
         try:
             if not client.send('whoami'):
-                raise Exception
+                removeClient(client)
+                continue
             whoami = client.recv().strip()
             if whoami is None or whoami == "":
                 removeClient(client)
