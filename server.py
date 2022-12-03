@@ -164,6 +164,7 @@ def removeClient(client):
             for currentClient in team.clients:
                 if client.IP == currentClient.IP:
                     team.unassign(currentClient)
+        CURRENT_CONNECTIONS_CLASS.remove(currentClient)
         for service in SERVICES:
             currentService = SERVICES[service]
             if currentClient in SERVICES[service].clients:
@@ -172,7 +173,6 @@ def removeClient(client):
             currentHost = HOSTNAMES[host]
             if currentClient in HOSTNAMES[host].clients:
                 HOSTNAMES[host].removeClient(currentClient)
-        CURRENT_CONNECTIONS_CLASS.remove(currentClient)
         client.socket.close()
     except Exception as e: 
         client.socket.close()
@@ -663,7 +663,10 @@ def getIPFromClient(clientSocket):
         try: #try to find a general IP
             IP = regex_ip_general.search(out)[0] #try to find local IP
         except:
-            IP = "0.0.0.0"
+            try: #try to find a general IP
+                IP = regex_ip_general.search(out) #try to find local IP
+            except:
+                IP = "0.0.0.0"
     return IP
 
 if __name__ == "__main__":
