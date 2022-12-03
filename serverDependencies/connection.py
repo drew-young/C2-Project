@@ -41,7 +41,9 @@ class Connection:
 
     def receiveResp(self):
         try:
-            print("\tClient (" + str(self.IP) + ") response: '" + str(self.socket.recv(self.BUFFER_SIZE).decode()).strip() + "'")
+            response = self.socket.recv(self.BUFFER_SIZE).decode()
+            if response != "beacon_pong":
+                print("\tClient (" + str(self.IP) + ") response: '" + str(response).strip() + "'")
             return True
         except:
             print("[FAILURE] Response failed from: " + self.IP)
