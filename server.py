@@ -654,20 +654,16 @@ def sendUpdate(ips, name="constctrl"):
 def getIPFromClient(clientSocket):
     clientSocket.send("getIP".encode())
     out = clientSocket.recv(BUFFER_SIZE).decode()
-    regex = re.compile(r'(10\.\d{1,2}\.\d{1,3}\.\d{1,3})') #hard code for IRSeC, look for 172.X.X.X, or 10.X.X.X
-    regex_cloud = re.compile(r'(127\.\d{1,2}\.\d{1,3}\.\d{1,3})')
+    regex = re.compile(r'(192\.168\.\d{1,3}\.\d{1,3})') #hard code for IRSeC, look for 172.X.X.X, or 10.X.X.X
     regex_ip_general = re.compile(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})')
     out = str(out).strip()
     try:
         IP = regex.search(out)[0] #try to find local IP
     except:
-        try:
-            IP = regex_cloud.search(out)[0] #if it's the cloud, run that regex
+        try: #try to find a general IP
+            IP = regex_ip_general.search(out)[0] #try to find local IP
         except:
-            try: #try to find a general IP
-                IP = regex_ip_general.search(out)[0] #try to find local IP
-            except:
-                IP = "0.0.0.0"
+            IP = "0.0.0.0"
     return IP
 
 if __name__ == "__main__":
