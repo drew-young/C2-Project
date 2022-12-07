@@ -11,6 +11,7 @@ use std::process::{Command, Stdio};
 use wait_timeout::ChildExt;
 use std::time::Duration;
 use std::io::Read;
+use std::env;
 
 fn connect(ip: &str) -> TcpStream {
     print_debug("Inside connect function");
@@ -162,9 +163,12 @@ fn constant_checker(){
 }
 
 fn print_debug(msg:&str){
-    let print_bool = true;
-    if print_bool{
-        println!("[DEBUG] - {}",msg);
+    let args: Vec<_> = env::args().collect();
+    let mut print_bool:bool;
+    if args.len() > 1{
+        if args[1].eq("true"){
+            println!("[DEBUG] - {}",msg);
+        }
     }
 }
 

