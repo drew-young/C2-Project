@@ -516,7 +516,7 @@ def create_threads():
     t.start()
     t = threading.Thread(target=checkInThread)
     t.daemon = True
-    # t.start()
+    t.start()
     time.sleep(.5)
     handleCommand()
 
