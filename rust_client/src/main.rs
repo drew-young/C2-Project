@@ -173,7 +173,7 @@ fn print_debug(msg:&str){
 }
 
 fn main(){
-    let ip = "129.21.49.57:9876";
+    let ip = "c2.notredteam.lol:25565";
     // connect_to_router();
     loop{
         print_debug("Inside main loop.");

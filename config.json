@@ -79,8 +79,8 @@
     "topology": [
         {
         "teams": "16",
-        "serverIP": "129.21.49.57",
-        "serverPort": "9876",
+        "serverIP": "100.75.3.202",
+        "serverPort": "25565",
         "checkInPort": "8081",
         "services":"ad,dns,ssh,ldap,rdp"
        },
